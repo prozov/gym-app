@@ -438,6 +438,59 @@ body.demo-mode {
     stroke: var(--primary);
 }
 
+/* Центральная кнопка (Тренировка) */
+.nav-btn-main {
+    position: relative;
+    padding-top: 38px;
+}
+
+.nav-btn-main svg {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    background: var(--primary);
+    border-radius: 50%;
+    box-shadow: 0 0 0 5px var(--bg), 0 4px 16px rgba(255, 107, 53, 0.3);
+}
+
+/* Плюс через псевдо-элементы */
+.nav-btn-main::before,
+.nav-btn-main::after {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    background: white;
+    border-radius: 1px;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.nav-btn-main::before {
+    width: 2px;
+    height: 20px;
+    transform: translateX(-50%);
+}
+
+.nav-btn-main::after {
+    width: 20px;
+    height: 2px;
+    transform: translateX(-50%) translateY(9px);
+}
+
+.nav-btn-main.active {
+    color: var(--primary);
+}
+
+.nav-btn-main.active svg {
+    stroke: white !important;
+    background: var(--primary);
+}
+
 /* ============================================
    КОНТЕЙНЕР И СТРАНИЦЫ
    ============================================ */
