@@ -233,14 +233,20 @@
                     </div>
                 </div>
 
-                <!-- График активности -->
+                <!-- Прогресс по группам мышц -->
                 <div class="chart-card">
-                    <div class="chart-title">Активность по дням</div>
-                    <canvas id="activity-chart"></canvas>
+                    <div class="chart-title">Тоннаж по группам мышц</div>
+                    <div class="muscle-tabs">
+                        <button class="muscle-tab active" data-muscle="Грудь" onclick="switchMuscleTab('Грудь')">💪 Грудь</button>
+                        <button class="muscle-tab" data-muscle="Спина" onclick="switchMuscleTab('Спина')">🔙 Спина</button>
+                        <button class="muscle-tab" data-muscle="Плечи" onclick="switchMuscleTab('Плечи')">🎯 Плечи</button>
+                        <button class="muscle-tab" data-muscle="Ноги" onclick="switchMuscleTab('Ноги')">🦵 Ноги</button>
+                    </div>
+                    <canvas id="muscle-group-chart"></canvas>
                 </div>
 
                 <!-- Топ упражнений -->
-                <div class="chart-card" style="margin-top: 16px !important;">
+                <div class="chart-card" style="margin-top: 16px;">
                     <div class="chart-title">Топ упражнений</div>
                     <div id="top-exercises-list">
                         <!-- Заполняется динамически -->
@@ -543,66 +549,232 @@
             { id: 'ex_tricep_extension', name: 'Разгибание рук', category: 'Трицепс', type: 'isolation' }
         ];
 
-        // Генерация демо-тренировок за последние 2 недели
+        // Генерация демо-тренировок за последние 2 месяца с реалистичной прогрессией
         function generateDemoWorkouts() {
             const workouts = [];
             const today = new Date();
 
-            // Тренировка 1: 3 дня назад (Грудь + Трицепс)
-            const date1 = new Date(today);
-            date1.setDate(date1.getDate() - 3);
-            const d1 = date1.toISOString().split('T')[0];
+            // Хелпер для создания даты
+            const getDate = (daysAgo) => {
+                const d = new Date(today);
+                d.setDate(d.getDate() - daysAgo);
+                return d.toISOString().split('T')[0];
+            };
+
+            // ========== ГРУДЬ (8 тренировок за 2 месяца) ==========
+            // Тренировка 8 (самая старая) - 56 дней назад
             workouts.push(
-                { date: d1, exercise_id: 'ex_dips', exercise_name: 'Брусья', weight: 0, reps: 15 },
-                { date: d1, exercise_id: 'ex_dips', exercise_name: 'Брусья', weight: 0, reps: 12 },
-                { date: d1, exercise_id: 'ex_dips', exercise_name: 'Брусья', weight: 0, reps: 10 },
-                { date: d1, exercise_id: 'ex_chest_press', exercise_name: 'Жим на грудь', weight: 60, reps: 12 },
-                { date: d1, exercise_id: 'ex_chest_press', exercise_name: 'Жим на грудь', weight: 70, reps: 10 },
-                { date: d1, exercise_id: 'ex_chest_press', exercise_name: 'Жим на грудь', weight: 70, reps: 8 },
-                { date: d1, exercise_id: 'ex_tricep_extension', exercise_name: 'Разгибание рук', weight: 25, reps: 15 },
-                { date: d1, exercise_id: 'ex_tricep_extension', exercise_name: 'Разгибание рук', weight: 25, reps: 12 }
+                { date: getDate(56), exercise_id: 'ex_chest_press', exercise_name: 'Жим на грудь', weight: 50, reps: 12 },
+                { date: getDate(56), exercise_id: 'ex_chest_press', exercise_name: 'Жим на грудь', weight: 55, reps: 10 },
+                { date: getDate(56), exercise_id: 'ex_chest_press', exercise_name: 'Жим на грудь', weight: 55, reps: 8 },
+                { date: getDate(56), exercise_id: 'ex_dips', exercise_name: 'Брусья', weight: 0, reps: 10 },
+                { date: getDate(56), exercise_id: 'ex_dips', exercise_name: 'Брусья', weight: 0, reps: 8 }
+            );
+            // Тренировка 7 - 49 дней назад
+            workouts.push(
+                { date: getDate(49), exercise_id: 'ex_chest_press', exercise_name: 'Жим на грудь', weight: 55, reps: 12 },
+                { date: getDate(49), exercise_id: 'ex_chest_press', exercise_name: 'Жим на грудь', weight: 55, reps: 10 },
+                { date: getDate(49), exercise_id: 'ex_chest_press', exercise_name: 'Жим на грудь', weight: 60, reps: 8 },
+                { date: getDate(49), exercise_id: 'ex_dips', exercise_name: 'Брусья', weight: 0, reps: 12 },
+                { date: getDate(49), exercise_id: 'ex_dips', exercise_name: 'Брусья', weight: 0, reps: 10 }
+            );
+            // Тренировка 6 - 42 дня назад
+            workouts.push(
+                { date: getDate(42), exercise_id: 'ex_chest_press', exercise_name: 'Жим на грудь', weight: 55, reps: 12 },
+                { date: getDate(42), exercise_id: 'ex_chest_press', exercise_name: 'Жим на грудь', weight: 60, reps: 10 },
+                { date: getDate(42), exercise_id: 'ex_chest_press', exercise_name: 'Жим на грудь', weight: 60, reps: 9 },
+                { date: getDate(42), exercise_id: 'ex_dips', exercise_name: 'Брусья', weight: 0, reps: 12 },
+                { date: getDate(42), exercise_id: 'ex_dips', exercise_name: 'Брусья', weight: 0, reps: 11 }
+            );
+            // Тренировка 5 - 35 дней назад
+            workouts.push(
+                { date: getDate(35), exercise_id: 'ex_chest_press', exercise_name: 'Жим на грудь', weight: 60, reps: 12 },
+                { date: getDate(35), exercise_id: 'ex_chest_press', exercise_name: 'Жим на грудь', weight: 60, reps: 10 },
+                { date: getDate(35), exercise_id: 'ex_chest_press', exercise_name: 'Жим на грудь', weight: 65, reps: 8 },
+                { date: getDate(35), exercise_id: 'ex_dips', exercise_name: 'Брусья', weight: 0, reps: 14 },
+                { date: getDate(35), exercise_id: 'ex_dips', exercise_name: 'Брусья', weight: 0, reps: 12 }
+            );
+            // Тренировка 4 - 28 дней назад
+            workouts.push(
+                { date: getDate(28), exercise_id: 'ex_chest_press', exercise_name: 'Жим на грудь', weight: 60, reps: 12 },
+                { date: getDate(28), exercise_id: 'ex_chest_press', exercise_name: 'Жим на грудь', weight: 65, reps: 10 },
+                { date: getDate(28), exercise_id: 'ex_chest_press', exercise_name: 'Жим на грудь', weight: 65, reps: 8 },
+                { date: getDate(28), exercise_id: 'ex_dips', exercise_name: 'Брусья', weight: 0, reps: 15 },
+                { date: getDate(28), exercise_id: 'ex_dips', exercise_name: 'Брусья', weight: 0, reps: 12 }
+            );
+            // Тренировка 3 - 21 день назад
+            workouts.push(
+                { date: getDate(21), exercise_id: 'ex_chest_press', exercise_name: 'Жим на грудь', weight: 65, reps: 12 },
+                { date: getDate(21), exercise_id: 'ex_chest_press', exercise_name: 'Жим на грудь', weight: 65, reps: 10 },
+                { date: getDate(21), exercise_id: 'ex_chest_press', exercise_name: 'Жим на грудь', weight: 70, reps: 7 },
+                { date: getDate(21), exercise_id: 'ex_dips', exercise_name: 'Брусья', weight: 5, reps: 12 },
+                { date: getDate(21), exercise_id: 'ex_dips', exercise_name: 'Брусья', weight: 5, reps: 10 }
+            );
+            // Тренировка 2 - 14 дней назад
+            workouts.push(
+                { date: getDate(14), exercise_id: 'ex_chest_press', exercise_name: 'Жим на грудь', weight: 65, reps: 12 },
+                { date: getDate(14), exercise_id: 'ex_chest_press', exercise_name: 'Жим на грудь', weight: 70, reps: 10 },
+                { date: getDate(14), exercise_id: 'ex_chest_press', exercise_name: 'Жим на грудь', weight: 70, reps: 8 },
+                { date: getDate(14), exercise_id: 'ex_dips', exercise_name: 'Брусья', weight: 5, reps: 14 },
+                { date: getDate(14), exercise_id: 'ex_dips', exercise_name: 'Брусья', weight: 5, reps: 12 }
+            );
+            // Тренировка 1 - 3 дня назад (последняя)
+            workouts.push(
+                { date: getDate(3), exercise_id: 'ex_chest_press', exercise_name: 'Жим на грудь', weight: 70, reps: 12 },
+                { date: getDate(3), exercise_id: 'ex_chest_press', exercise_name: 'Жим на грудь', weight: 70, reps: 10 },
+                { date: getDate(3), exercise_id: 'ex_chest_press', exercise_name: 'Жим на грудь', weight: 75, reps: 8 },
+                { date: getDate(3), exercise_id: 'ex_dips', exercise_name: 'Брусья', weight: 10, reps: 12 },
+                { date: getDate(3), exercise_id: 'ex_dips', exercise_name: 'Брусья', weight: 10, reps: 10 }
             );
 
-            // Тренировка 2: 5 дней назад (Спина + Бицепс)
-            const date2 = new Date(today);
-            date2.setDate(date2.getDate() - 5);
-            const d2 = date2.toISOString().split('T')[0];
+            // ========== СПИНА (8 тренировок) ==========
             workouts.push(
-                { date: d2, exercise_id: 'ex_pullups', exercise_name: 'Подтягивания', weight: 0, reps: 12 },
-                { date: d2, exercise_id: 'ex_pullups', exercise_name: 'Подтягивания', weight: 0, reps: 10 },
-                { date: d2, exercise_id: 'ex_pullups', exercise_name: 'Подтягивания', weight: 0, reps: 8 },
-                { date: d2, exercise_id: 'ex_horizontal_row', exercise_name: 'Горизонтальные тяги', weight: 50, reps: 12 },
-                { date: d2, exercise_id: 'ex_horizontal_row', exercise_name: 'Горизонтальные тяги', weight: 55, reps: 10 },
-                { date: d2, exercise_id: 'ex_horizontal_row', exercise_name: 'Горизонтальные тяги', weight: 55, reps: 10 },
-                { date: d2, exercise_id: 'ex_bicep_curl', exercise_name: 'Сгибание рук', weight: 12, reps: 15 },
-                { date: d2, exercise_id: 'ex_bicep_curl', exercise_name: 'Сгибание рук', weight: 14, reps: 12 }
+                { date: getDate(54), exercise_id: 'ex_pullups', exercise_name: 'Подтягивания', weight: 0, reps: 8 },
+                { date: getDate(54), exercise_id: 'ex_pullups', exercise_name: 'Подтягивания', weight: 0, reps: 6 },
+                { date: getDate(54), exercise_id: 'ex_horizontal_row', exercise_name: 'Горизонтальные тяги', weight: 40, reps: 12 },
+                { date: getDate(54), exercise_id: 'ex_horizontal_row', exercise_name: 'Горизонтальные тяги', weight: 45, reps: 10 }
+            );
+            workouts.push(
+                { date: getDate(47), exercise_id: 'ex_pullups', exercise_name: 'Подтягивания', weight: 0, reps: 9 },
+                { date: getDate(47), exercise_id: 'ex_pullups', exercise_name: 'Подтягивания', weight: 0, reps: 7 },
+                { date: getDate(47), exercise_id: 'ex_horizontal_row', exercise_name: 'Горизонтальные тяги', weight: 45, reps: 12 },
+                { date: getDate(47), exercise_id: 'ex_horizontal_row', exercise_name: 'Горизонтальные тяги', weight: 45, reps: 10 }
+            );
+            workouts.push(
+                { date: getDate(40), exercise_id: 'ex_pullups', exercise_name: 'Подтягивания', weight: 0, reps: 10 },
+                { date: getDate(40), exercise_id: 'ex_pullups', exercise_name: 'Подтягивания', weight: 0, reps: 8 },
+                { date: getDate(40), exercise_id: 'ex_horizontal_row', exercise_name: 'Горизонтальные тяги', weight: 45, reps: 12 },
+                { date: getDate(40), exercise_id: 'ex_horizontal_row', exercise_name: 'Горизонтальные тяги', weight: 50, reps: 10 }
+            );
+            workouts.push(
+                { date: getDate(33), exercise_id: 'ex_pullups', exercise_name: 'Подтягивания', weight: 0, reps: 10 },
+                { date: getDate(33), exercise_id: 'ex_pullups', exercise_name: 'Подтягивания', weight: 0, reps: 9 },
+                { date: getDate(33), exercise_id: 'ex_horizontal_row', exercise_name: 'Горизонтальные тяги', weight: 50, reps: 12 },
+                { date: getDate(33), exercise_id: 'ex_horizontal_row', exercise_name: 'Горизонтальные тяги', weight: 50, reps: 10 }
+            );
+            workouts.push(
+                { date: getDate(26), exercise_id: 'ex_pullups', exercise_name: 'Подтягивания', weight: 0, reps: 11 },
+                { date: getDate(26), exercise_id: 'ex_pullups', exercise_name: 'Подтягивания', weight: 0, reps: 9 },
+                { date: getDate(26), exercise_id: 'ex_horizontal_row', exercise_name: 'Горизонтальные тяги', weight: 50, reps: 12 },
+                { date: getDate(26), exercise_id: 'ex_horizontal_row', exercise_name: 'Горизонтальные тяги', weight: 55, reps: 10 }
+            );
+            workouts.push(
+                { date: getDate(19), exercise_id: 'ex_pullups', exercise_name: 'Подтягивания', weight: 0, reps: 12 },
+                { date: getDate(19), exercise_id: 'ex_pullups', exercise_name: 'Подтягивания', weight: 0, reps: 10 },
+                { date: getDate(19), exercise_id: 'ex_horizontal_row', exercise_name: 'Горизонтальные тяги', weight: 55, reps: 12 },
+                { date: getDate(19), exercise_id: 'ex_horizontal_row', exercise_name: 'Горизонтальные тяги', weight: 55, reps: 10 }
+            );
+            workouts.push(
+                { date: getDate(12), exercise_id: 'ex_pullups', exercise_name: 'Подтягивания', weight: 5, reps: 10 },
+                { date: getDate(12), exercise_id: 'ex_pullups', exercise_name: 'Подтягивания', weight: 5, reps: 8 },
+                { date: getDate(12), exercise_id: 'ex_horizontal_row', exercise_name: 'Горизонтальные тяги', weight: 55, reps: 12 },
+                { date: getDate(12), exercise_id: 'ex_horizontal_row', exercise_name: 'Горизонтальные тяги', weight: 60, reps: 10 }
+            );
+            workouts.push(
+                { date: getDate(5), exercise_id: 'ex_pullups', exercise_name: 'Подтягивания', weight: 5, reps: 12 },
+                { date: getDate(5), exercise_id: 'ex_pullups', exercise_name: 'Подтягивания', weight: 5, reps: 10 },
+                { date: getDate(5), exercise_id: 'ex_horizontal_row', exercise_name: 'Горизонтальные тяги', weight: 60, reps: 12 },
+                { date: getDate(5), exercise_id: 'ex_horizontal_row', exercise_name: 'Горизонтальные тяги', weight: 60, reps: 10 }
             );
 
-            // Тренировка 3: 7 дней назад (Ноги)
-            const date3 = new Date(today);
-            date3.setDate(date3.getDate() - 7);
-            const d3 = date3.toISOString().split('T')[0];
+            // ========== НОГИ (8 тренировок) ==========
             workouts.push(
-                { date: d3, exercise_id: 'ex_leg_press', exercise_name: 'Жим ногами', weight: 120, reps: 15 },
-                { date: d3, exercise_id: 'ex_leg_press', exercise_name: 'Жим ногами', weight: 140, reps: 12 },
-                { date: d3, exercise_id: 'ex_leg_press', exercise_name: 'Жим ногами', weight: 140, reps: 10 },
-                { date: d3, exercise_id: 'ex_hack_squat', exercise_name: 'Гакк-приседания', weight: 80, reps: 12 },
-                { date: d3, exercise_id: 'ex_hack_squat', exercise_name: 'Гакк-приседания', weight: 90, reps: 10 },
-                { date: d3, exercise_id: 'ex_hack_squat', exercise_name: 'Гакк-приседания', weight: 90, reps: 8 },
-                { date: d3, exercise_id: 'ex_leg_curl', exercise_name: 'Сгибание ног', weight: 40, reps: 15 },
-                { date: d3, exercise_id: 'ex_leg_curl', exercise_name: 'Сгибание ног', weight: 45, reps: 12 }
+                { date: getDate(55), exercise_id: 'ex_leg_press', exercise_name: 'Жим ногами', weight: 100, reps: 15 },
+                { date: getDate(55), exercise_id: 'ex_leg_press', exercise_name: 'Жим ногами', weight: 110, reps: 12 },
+                { date: getDate(55), exercise_id: 'ex_hack_squat', exercise_name: 'Гакк-приседания', weight: 60, reps: 12 },
+                { date: getDate(55), exercise_id: 'ex_hack_squat', exercise_name: 'Гакк-приседания', weight: 70, reps: 10 }
+            );
+            workouts.push(
+                { date: getDate(48), exercise_id: 'ex_leg_press', exercise_name: 'Жим ногами', weight: 110, reps: 15 },
+                { date: getDate(48), exercise_id: 'ex_leg_press', exercise_name: 'Жим ногами', weight: 120, reps: 12 },
+                { date: getDate(48), exercise_id: 'ex_hack_squat', exercise_name: 'Гакк-приседания', weight: 70, reps: 12 },
+                { date: getDate(48), exercise_id: 'ex_hack_squat', exercise_name: 'Гакк-приседания', weight: 75, reps: 10 }
+            );
+            workouts.push(
+                { date: getDate(41), exercise_id: 'ex_leg_press', exercise_name: 'Жим ногами', weight: 115, reps: 15 },
+                { date: getDate(41), exercise_id: 'ex_leg_press', exercise_name: 'Жим ногами', weight: 125, reps: 12 },
+                { date: getDate(41), exercise_id: 'ex_hack_squat', exercise_name: 'Гакк-приседания', weight: 75, reps: 12 },
+                { date: getDate(41), exercise_id: 'ex_hack_squat', exercise_name: 'Гакк-приседания', weight: 80, reps: 10 }
+            );
+            workouts.push(
+                { date: getDate(34), exercise_id: 'ex_leg_press', exercise_name: 'Жим ногами', weight: 120, reps: 15 },
+                { date: getDate(34), exercise_id: 'ex_leg_press', exercise_name: 'Жим ногами', weight: 130, reps: 12 },
+                { date: getDate(34), exercise_id: 'ex_hack_squat', exercise_name: 'Гакк-приседания', weight: 80, reps: 12 },
+                { date: getDate(34), exercise_id: 'ex_hack_squat', exercise_name: 'Гакк-приседания', weight: 85, reps: 10 }
+            );
+            workouts.push(
+                { date: getDate(27), exercise_id: 'ex_leg_press', exercise_name: 'Жим ногами', weight: 125, reps: 15 },
+                { date: getDate(27), exercise_id: 'ex_leg_press', exercise_name: 'Жим ногами', weight: 135, reps: 12 },
+                { date: getDate(27), exercise_id: 'ex_hack_squat', exercise_name: 'Гакк-приседания', weight: 85, reps: 12 },
+                { date: getDate(27), exercise_id: 'ex_hack_squat', exercise_name: 'Гакк-приседания', weight: 90, reps: 10 }
+            );
+            workouts.push(
+                { date: getDate(20), exercise_id: 'ex_leg_press', exercise_name: 'Жим ногами', weight: 130, reps: 15 },
+                { date: getDate(20), exercise_id: 'ex_leg_press', exercise_name: 'Жим ногами', weight: 140, reps: 12 },
+                { date: getDate(20), exercise_id: 'ex_hack_squat', exercise_name: 'Гакк-приседания', weight: 85, reps: 12 },
+                { date: getDate(20), exercise_id: 'ex_hack_squat', exercise_name: 'Гакк-приседания', weight: 95, reps: 10 }
+            );
+            workouts.push(
+                { date: getDate(13), exercise_id: 'ex_leg_press', exercise_name: 'Жим ногами', weight: 135, reps: 15 },
+                { date: getDate(13), exercise_id: 'ex_leg_press', exercise_name: 'Жим ногами', weight: 145, reps: 12 },
+                { date: getDate(13), exercise_id: 'ex_hack_squat', exercise_name: 'Гакк-приседания', weight: 90, reps: 12 },
+                { date: getDate(13), exercise_id: 'ex_hack_squat', exercise_name: 'Гакк-приседания', weight: 100, reps: 10 }
+            );
+            workouts.push(
+                { date: getDate(6), exercise_id: 'ex_leg_press', exercise_name: 'Жим ногами', weight: 140, reps: 15 },
+                { date: getDate(6), exercise_id: 'ex_leg_press', exercise_name: 'Жим ногами', weight: 150, reps: 12 },
+                { date: getDate(6), exercise_id: 'ex_hack_squat', exercise_name: 'Гакк-приседания', weight: 95, reps: 12 },
+                { date: getDate(6), exercise_id: 'ex_hack_squat', exercise_name: 'Гакк-приседания', weight: 105, reps: 10 }
             );
 
-            // Тренировка 4: 10 дней назад (Плечи)
-            const date4 = new Date(today);
-            date4.setDate(date4.getDate() - 10);
-            const d4 = date4.toISOString().split('T')[0];
+            // ========== ПЛЕЧИ (8 тренировок) ==========
             workouts.push(
-                { date: d4, exercise_id: 'ex_shoulder_press_dumbbell', exercise_name: 'Жим гантелей', weight: 20, reps: 12 },
-                { date: d4, exercise_id: 'ex_shoulder_press_dumbbell', exercise_name: 'Жим гантелей', weight: 22, reps: 10 },
-                { date: d4, exercise_id: 'ex_shoulder_press_dumbbell', exercise_name: 'Жим гантелей', weight: 22, reps: 8 },
-                { date: d4, exercise_id: 'ex_lateral_raise', exercise_name: 'Разведение гантелей', weight: 10, reps: 15 },
-                { date: d4, exercise_id: 'ex_lateral_raise', exercise_name: 'Разведение гантелей', weight: 10, reps: 12 }
+                { date: getDate(53), exercise_id: 'ex_shoulder_press_dumbbell', exercise_name: 'Жим гантелей', weight: 14, reps: 12 },
+                { date: getDate(53), exercise_id: 'ex_shoulder_press_dumbbell', exercise_name: 'Жим гантелей', weight: 16, reps: 10 },
+                { date: getDate(53), exercise_id: 'ex_lateral_raise', exercise_name: 'Разведение гантелей', weight: 8, reps: 15 },
+                { date: getDate(53), exercise_id: 'ex_lateral_raise', exercise_name: 'Разведение гантелей', weight: 8, reps: 12 }
+            );
+            workouts.push(
+                { date: getDate(46), exercise_id: 'ex_shoulder_press_dumbbell', exercise_name: 'Жим гантелей', weight: 16, reps: 12 },
+                { date: getDate(46), exercise_id: 'ex_shoulder_press_dumbbell', exercise_name: 'Жим гантелей', weight: 16, reps: 10 },
+                { date: getDate(46), exercise_id: 'ex_lateral_raise', exercise_name: 'Разведение гантелей', weight: 8, reps: 15 },
+                { date: getDate(46), exercise_id: 'ex_lateral_raise', exercise_name: 'Разведение гантелей', weight: 10, reps: 12 }
+            );
+            workouts.push(
+                { date: getDate(39), exercise_id: 'ex_shoulder_press_dumbbell', exercise_name: 'Жим гантелей', weight: 16, reps: 12 },
+                { date: getDate(39), exercise_id: 'ex_shoulder_press_dumbbell', exercise_name: 'Жим гантелей', weight: 18, reps: 10 },
+                { date: getDate(39), exercise_id: 'ex_lateral_raise', exercise_name: 'Разведение гантелей', weight: 10, reps: 15 },
+                { date: getDate(39), exercise_id: 'ex_lateral_raise', exercise_name: 'Разведение гантелей', weight: 10, reps: 12 }
+            );
+            workouts.push(
+                { date: getDate(32), exercise_id: 'ex_shoulder_press_dumbbell', exercise_name: 'Жим гантелей', weight: 18, reps: 12 },
+                { date: getDate(32), exercise_id: 'ex_shoulder_press_dumbbell', exercise_name: 'Жим гантелей', weight: 18, reps: 10 },
+                { date: getDate(32), exercise_id: 'ex_lateral_raise', exercise_name: 'Разведение гантелей', weight: 10, reps: 15 },
+                { date: getDate(32), exercise_id: 'ex_lateral_raise', exercise_name: 'Разведение гантелей', weight: 10, reps: 14 }
+            );
+            workouts.push(
+                { date: getDate(25), exercise_id: 'ex_shoulder_press_dumbbell', exercise_name: 'Жим гантелей', weight: 18, reps: 12 },
+                { date: getDate(25), exercise_id: 'ex_shoulder_press_dumbbell', exercise_name: 'Жим гантелей', weight: 20, reps: 10 },
+                { date: getDate(25), exercise_id: 'ex_lateral_raise', exercise_name: 'Разведение гантелей', weight: 10, reps: 15 },
+                { date: getDate(25), exercise_id: 'ex_lateral_raise', exercise_name: 'Разведение гантелей', weight: 12, reps: 12 }
+            );
+            workouts.push(
+                { date: getDate(18), exercise_id: 'ex_shoulder_press_dumbbell', exercise_name: 'Жим гантелей', weight: 20, reps: 12 },
+                { date: getDate(18), exercise_id: 'ex_shoulder_press_dumbbell', exercise_name: 'Жим гантелей', weight: 20, reps: 10 },
+                { date: getDate(18), exercise_id: 'ex_lateral_raise', exercise_name: 'Разведение гантелей', weight: 12, reps: 15 },
+                { date: getDate(18), exercise_id: 'ex_lateral_raise', exercise_name: 'Разведение гантелей', weight: 12, reps: 12 }
+            );
+            workouts.push(
+                { date: getDate(11), exercise_id: 'ex_shoulder_press_dumbbell', exercise_name: 'Жим гантелей', weight: 20, reps: 12 },
+                { date: getDate(11), exercise_id: 'ex_shoulder_press_dumbbell', exercise_name: 'Жим гантелей', weight: 22, reps: 10 },
+                { date: getDate(11), exercise_id: 'ex_lateral_raise', exercise_name: 'Разведение гантелей', weight: 12, reps: 15 },
+                { date: getDate(11), exercise_id: 'ex_lateral_raise', exercise_name: 'Разведение гантелей', weight: 12, reps: 14 }
+            );
+            workouts.push(
+                { date: getDate(4), exercise_id: 'ex_shoulder_press_dumbbell', exercise_name: 'Жим гантелей', weight: 22, reps: 12 },
+                { date: getDate(4), exercise_id: 'ex_shoulder_press_dumbbell', exercise_name: 'Жим гантелей', weight: 22, reps: 10 },
+                { date: getDate(4), exercise_id: 'ex_lateral_raise', exercise_name: 'Разведение гантелей', weight: 12, reps: 15 },
+                { date: getDate(4), exercise_id: 'ex_lateral_raise', exercise_name: 'Разведение гантелей', weight: 14, reps: 12 }
             );
 
             return workouts;
@@ -1526,7 +1698,9 @@
         // ============================================
         // СТАТИСТИКА
         // ============================================
-        let activityChart = null;
+        let muscleGroupChart = null;
+        let currentMuscleGroup = 'Грудь';
+        let currentWorkoutsData = [];
 
         function populateStatsSelect() {
             const select = document.getElementById('stats-exercise-select');
@@ -1650,68 +1824,28 @@
                     document.getElementById('progress-comparison').style.display = 'block';
                 }
 
-                // График активности по дням (последние 30 дней)
-                renderActivityChart(currentMonth);
-
                 // Топ упражнений
                 renderTopExercises(currentMonth);
+
+                // График по группам мышц
+                currentWorkoutsData = currentMonth;
+                renderMuscleGroupChart(currentMuscleGroup);
 
             } catch (error) {
                 console.error('Ошибка загрузки обзора:', error);
             }
         }
 
-        function renderActivityChart(workouts) {
-            const ctx = document.getElementById('activity-chart').getContext('2d');
+        function switchMuscleTab(muscleGroup) {
+            currentMuscleGroup = muscleGroup;
 
-            if (activityChart) {
-                activityChart.destroy();
-            }
-
-            // Создаём массив последних 30 дней
-            const days = [];
-            const volumes = [];
-            for (let i = 29; i >= 0; i--) {
-                const date = new Date();
-                date.setDate(date.getDate() - i);
-                const dateStr = date.toISOString().split('T')[0];
-                days.push(date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }));
-
-                // Считаем объём за этот день
-                const dayWorkouts = workouts.filter(w => w.date === dateStr);
-                const dayVolume = dayWorkouts.reduce((sum, w) => sum + (parseFloat(w.weight) || 0) * (parseInt(w.reps) || 0), 0);
-                volumes.push(dayVolume / 1000); // в тоннах
-            }
-
-            activityChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: days,
-                    datasets: [{
-                        label: 'Объём (т)',
-                        data: volumes,
-                        backgroundColor: volumes.map(v => v > 0 ? '#FF6B35' : '#F0F0F0'),
-                        borderRadius: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        x: {
-                            display: false
-                        },
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: value => value + 'т'
-                            }
-                        }
-                    }
-                }
+            // Обновляем активный таб
+            document.querySelectorAll('.muscle-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.muscle === muscleGroup);
             });
+
+            // Перерисовываем график
+            renderMuscleGroupChart(muscleGroup);
         }
 
         function renderTopExercises(workouts) {
@@ -1765,6 +1899,98 @@
                     </div>
                 `;
             }).join('');
+        }
+
+        function renderMuscleGroupChart(muscleGroup) {
+            const colors = {
+                'Грудь': '#FF6B35',
+                'Спина': '#4CAF50',
+                'Плечи': '#2196F3',
+                'Ноги': '#9C27B0'
+            };
+
+            const ctx = document.getElementById('muscle-group-chart');
+            if (!ctx) return;
+
+            if (muscleGroupChart) {
+                muscleGroupChart.destroy();
+            }
+
+            const color = colors[muscleGroup] || '#FF6B35';
+
+            // Фильтруем упражнения по группе мышц
+            const groupExerciseIds = exercises
+                .filter(e => e.category === muscleGroup)
+                .map(e => e.id);
+
+            const groupWorkouts = currentWorkoutsData.filter(w => groupExerciseIds.includes(w.exercise_id));
+
+            // Группируем по дате и считаем тоннаж
+            const byDate = {};
+            groupWorkouts.forEach(w => {
+                const date = w.date;
+                if (!byDate[date]) {
+                    byDate[date] = 0;
+                }
+                byDate[date] += (parseFloat(w.weight) || 0) * (parseInt(w.reps) || 0);
+            });
+
+            const sortedDates = Object.keys(byDate).sort();
+            const labels = sortedDates.map(d =>
+                new Date(d).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
+            );
+            const data = sortedDates.map(d => byDate[d] / 1000); // в тоннах
+
+            if (data.length === 0) {
+                muscleGroupChart = new Chart(ctx.getContext('2d'), {
+                    type: 'line',
+                    data: { labels: ['Нет данных'], datasets: [{ data: [0], borderColor: color }] },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } }
+                    }
+                });
+                return;
+            }
+
+            muscleGroupChart = new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Тоннаж',
+                        data: data,
+                        borderColor: color,
+                        backgroundColor: color + '20',
+                        tension: 0.3,
+                        fill: true,
+                        pointRadius: 4,
+                        pointBackgroundColor: color
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45,
+                                font: { size: 10 }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: value => parseFloat(value).toFixed(1) + 'т'
+                            }
+                        }
+                    }
+                }
+            });
         }
 
         function renderWeightChart(workouts) {
