@@ -1919,16 +1919,16 @@
             const metrics = [];
             const today = new Date();
 
-            // Реалистичные колебания веса и параметров
-            // Базовые значения: вес ~82кг, талия ~88см, шея ~38см
-            const baseWeight = 82;
-            const baseWaist = 88;
-            const baseNeck = 38;
+            // Реалистичные колебания веса и параметров (рекомпозиция)
+            // Базовые значения: вес ~78кг, талия ~86см, шея ~37см
+            const baseWeight = 78;
+            const baseWaist = 86;
+            const baseNeck = 37;
 
-            // Паттерн колебаний (реалистичный: не линейный, с откатами)
-            const weightVariations = [0, -0.3, -0.1, -0.5, -0.2, -0.8, -0.5, -1.0, -1.2];
-            const waistVariations = [0, -0.2, 0.1, -0.4, -0.3, -0.6, -0.4, -0.9, -1.1];
-            const neckVariations = [0, 0.1, 0, -0.1, 0, 0.1, -0.1, 0, -0.2];
+            // Паттерн с колебаниями: набор веса с откатами, % жира с ~17.9% до ~16.4%
+            const weightVariations = [0, 0.5, 0.2, 0.8, 0.5, 1.3, 0.9, 1.5, 1.8];
+            const waistVariations = [0, -0.3, 0.1, -0.5, -0.2, -0.7, -0.4, -1.0, -1.2];
+            const neckVariations = [0, 0.2, 0.1, 0.4, 0.3, 0.6, 0.5, 0.7, 0.8];
 
             // Генерируем данные за последние 8 недель
             for (let i = 8; i >= 0; i--) {
@@ -2072,7 +2072,7 @@
                         y: {
                             beginAtZero: false,
                             ticks: {
-                                callback: value => value + ' кг'
+                                callback: value => parseFloat(value).toFixed(1) + ' кг'
                             }
                         }
                     }
@@ -2119,7 +2119,7 @@
                         y: {
                             beginAtZero: false,
                             ticks: {
-                                callback: value => value + '%'
+                                callback: value => parseFloat(value).toFixed(1) + '%'
                             }
                         }
                     }
