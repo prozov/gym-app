@@ -1919,25 +1919,37 @@
             const metrics = [];
             const today = new Date();
 
-            // Генерируем данные за последние 8 недель (по одному измерению в неделю)
+            // Реалистичные колебания веса и параметров
+            // Базовые значения: вес ~82кг, талия ~88см, шея ~38см
+            const baseWeight = 82;
+            const baseWaist = 88;
+            const baseNeck = 38;
+
+            // Паттерн колебаний (реалистичный: не линейный, с откатами)
+            const weightVariations = [0, -0.3, -0.1, -0.5, -0.2, -0.8, -0.5, -1.0, -1.2];
+            const waistVariations = [0, -0.2, 0.1, -0.4, -0.3, -0.6, -0.4, -0.9, -1.1];
+            const neckVariations = [0, 0.1, 0, -0.1, 0, 0.1, -0.1, 0, -0.2];
+
+            // Генерируем данные за последние 8 недель
             for (let i = 8; i >= 0; i--) {
                 const date = new Date(today);
                 date.setDate(date.getDate() - i * 7);
 
+                const idx = 8 - i;
                 const height = 178;
-                const weight = (82 - i * 0.3).toFixed(1); // Постепенное снижение веса
-                const neck = 38;
-                const waist = (90 - i * 0.5).toFixed(1); // Уменьшение талии
+                const weight = (baseWeight + weightVariations[idx]).toFixed(1);
+                const neck = (baseNeck + neckVariations[idx]).toFixed(1);
+                const waist = (baseWaist + waistVariations[idx]).toFixed(1);
 
                 // Расчет % жира по формуле ВМС США
-                const bodyFat = calculateBodyFat(height, neck, parseFloat(waist));
+                const bodyFat = calculateBodyFat(height, parseFloat(neck), parseFloat(waist));
 
                 metrics.push({
                     id: 'bm_demo_' + i,
                     date: date.toISOString().split('T')[0],
                     height: height,
                     weight: parseFloat(weight),
-                    neck: neck,
+                    neck: parseFloat(neck),
                     waist: parseFloat(waist),
                     body_fat_percent: bodyFat
                 });
@@ -2132,6 +2144,7 @@
                             <span class="body-metric-tag">⚖️ ${m.weight} кг</span>
                             <span class="body-metric-tag">📉 ${m.body_fat_percent}%</span>
                             <span class="body-metric-tag">📏 ${m.waist} см</span>
+                            <span class="body-metric-tag">👔 ${m.neck} см</span>
                         </div>
                     </div>
                 `;

@@ -1498,3 +1498,7 @@ input:focus, select:focus {
     font-size: 13px;
     font-weight: 500;
 }
+
+#body-metrics-history {
+    margin-top: 24px;
+}
