@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Дневник тренировок</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+    <!-- Загрузка -->
+    <div id="loading" class="loading">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Загрузка...</div>
+    </div>
+
+    <!-- ==================== СТРАНИЦА: ТРЕНИРОВКА ==================== -->
+    <section id="page-workout" class="page active">
+        <div class="header">
+            <div class="header-greeting" id="header-date">Сегодня</div>
+            <div class="header-title">Новая тренировка</div>
+        </div>
+
+        <div class="container">
+            <!-- Дата -->
+            <div class="date-picker" onclick="openDatePicker()">
+                <div class="date-picker-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                </div>
+                <div class="date-picker-text">
+                    <div class="date-picker-label">Дата тренировки</div>
+                    <div class="date-picker-value" id="workout-date-display">Понедельник, 9 декабря</div>
+                </div>
+                <input type="date" id="workout-date" style="position: absolute; opacity: 0; width: 0;">
+            </div>
+
+            <!-- Контейнер для упражнений -->
+            <div id="exercises-container">
+                <!-- Упражнения добавляются динамически -->
+            </div>
+
+            <!-- Добавить упражнение -->
+            <button class="btn btn-secondary" onclick="showAddExerciseModal()" style="margin-bottom: 16px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Добавить упражнение
+            </button>
+
+            <!-- Завершить -->
+            <button class="btn btn-primary" onclick="saveWorkout()" id="save-workout-btn" style="display: none;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 6L9 17l-5-5"/>
+                </svg>
+                Завершить тренировку
+            </button>
+        </div>
+    </section>
+
+    <!-- ==================== СТРАНИЦА: ИСТОРИЯ ==================== -->
+    <section id="page-history" class="page">
+        <div class="header">
+            <div class="header-title">История</div>
+        </div>
+
+        <div class="container">
+            <div id="history-container">
+                <div class="empty-state">Загрузка истории...</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== СТРАНИЦА: СТАТИСТИКА ==================== -->
+    <section id="page-stats" class="page">
+        <div class="header">
+            <div class="header-title">Статистика</div>
+        </div>
+
+        <div class="container">
+            <div class="form-group">
+                <select id="stats-exercise-select" onchange="loadStats()">
+                    <option value="">Выберите упражнение...</option>
+                </select>
+            </div>
+
+            <div id="stats-container" style="display: none;">
+                <div class="stats-grid">
+                    <div class="stat-card highlight">
+                        <div class="stat-icon">🏆</div>
+                        <div class="stat-value" id="stat-max-weight">0 кг</div>
+                        <div class="stat-label">Макс. вес</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-value" id="stat-total-sets">0</div>
+                        <div class="stat-label">Всего подходов</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🔄</div>
+                        <div class="stat-value" id="stat-total-reps">0</div>
+                        <div class="stat-label">Всего повторений</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🗓</div>
+                        <div class="stat-value" id="stat-last-date">—</div>
+                        <div class="stat-label">Последняя</div>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-title">Прогресс веса</div>
+                    <canvas id="weight-chart"></canvas>
+                </div>
+            </div>
+
+            <div id="stats-empty" class="empty-state">
+                Выберите упражнение для просмотра статистики
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== СТРАНИЦА: УПРАЖНЕНИЯ ==================== -->
+    <section id="page-exercises" class="page">
+        <div class="header">
+            <div class="header-title">Упражнения</div>
+        </div>
+
+        <div class="container" id="exercises-list-container">
+            <div class="empty-state">Загрузка упражнений...</div>
+        </div>
+    </section>
+
+    <!-- ==================== МОДАЛЬНОЕ ОКНО: ВЫБОР УПРАЖНЕНИЯ ==================== -->
+    <div id="add-exercise-modal" class="modal hidden">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>Выберите упражнение</h2>
+                <button class="btn-icon" onclick="hideAddExerciseModal()">×</button>
+            </div>
+            <div class="modal-body" id="exercise-select-list">
+                <!-- Список упражнений -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== МОДАЛЬНОЕ ОКНО: ТАЙМЕР ==================== -->
+    <div id="timer-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-title">Отдых</div>
+            <div class="timer-circle">
+                <svg class="timer-svg" width="200" height="200">
+                    <circle class="timer-bg" cx="100" cy="100" r="90" />
+                    <circle class="timer-progress" id="timer-progress" cx="100" cy="100" r="90" />
+                </svg>
+                <div class="timer-display" id="timer-display">02:00</div>
+            </div>
+            <div class="timer-controls">
+                <button class="btn btn-secondary btn-small" onclick="addTimerTime(15)">+15 сек</button>
+                <button class="btn btn-primary btn-small" onclick="stopTimer()">Готово</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== НАВИГАЦИЯ ==================== -->
+    <nav class="nav">
+        <button class="nav-btn active" onclick="showPage('workout')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Тренировка
+        </button>
+        <button class="nav-btn" onclick="showPage('history')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 8v4l3 3"/>
+                <circle cx="12" cy="12" r="10"/>
+            </svg>
+            История
+        </button>
+        <button class="nav-btn" onclick="showPage('stats')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 20V10M12 20V4M6 20v-6"/>
+            </svg>
+            Статистика
+        </button>
+        <button class="nav-btn" onclick="showPage('exercises')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+            Упражнения
+        </button>
+    </nav>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- API -->
+    <script src="js/api.js"></script>
+
+    <!-- Главный скрипт -->
+    <script>
+        // ============================================
+        // СОСТОЯНИЕ ПРИЛОЖЕНИЯ
+        // ============================================
+        let exercises = [];
+        let currentWorkout = []; // Массив упражнений текущей тренировки
+        let workoutDate = new Date().toISOString().split('T')[0];
+        let weightChart = null;
+        let lastWorkoutData = {}; // Кэш последних результатов по упражнениям
+
+        // ============================================
+        // ИНИЦИАЛИЗАЦИЯ
+        // ============================================
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Установить дату
+            document.getElementById('workout-date').value = workoutDate;
+            updateDateDisplay();
+
+            // Загрузить упражнения
+            await loadExercises();
+
+            // Загрузить последние данные тренировок для автозаполнения
+            await loadLastWorkoutData();
+
+            // Скрыть загрузку
+            document.getElementById('loading').classList.add('hidden');
+        });
+
+        /**
+         * Загрузить последние результаты по каждому упражнению
+         */
+        async function loadLastWorkoutData() {
+            try {
+                const workouts = await API.getWorkouts();
+
+                // Группируем по упражнениям, берём последние данные
+                workouts.forEach(w => {
+                    if (!lastWorkoutData[w.exercise_id]) {
+                        lastWorkoutData[w.exercise_id] = {
+                            sets: []
+                        };
+                    }
+                });
+
+                // Для каждого упражнения собираем подходы из последней тренировки
+                const byExerciseAndDate = {};
+                workouts.forEach(w => {
+                    const key = w.exercise_id + '_' + w.date;
+                    if (!byExerciseAndDate[key]) {
+                        byExerciseAndDate[key] = {
+                            exercise_id: w.exercise_id,
+                            date: w.date,
+                            sets: []
+                        };
+                    }
+                    byExerciseAndDate[key].sets.push({
+                        weight: w.weight,
+                        reps: w.reps
+                    });
+                });
+
+                // Берём последнюю тренировку для каждого упражнения
+                Object.values(byExerciseAndDate).forEach(item => {
+                    const existing = lastWorkoutData[item.exercise_id];
+                    if (!existing || !existing.date || new Date(item.date) > new Date(existing.date)) {
+                        lastWorkoutData[item.exercise_id] = {
+                            date: item.date,
+                            sets: item.sets.sort((a, b) => a.set_number - b.set_number)
+                        };
+                    }
+                });
+            } catch (error) {
+                console.error('Ошибка загрузки истории:', error);
+            }
+        }
+
+        /**
+         * Получить последние данные по упражнению
+         */
+        function getLastExerciseData(exerciseId) {
+            const data = lastWorkoutData[exerciseId];
+            if (data && data.sets && data.sets.length > 0) {
+                return data.sets;
+            }
+            // По умолчанию: 40 кг, 10 повторений
+            return [
+                { weight: 40, reps: 10 },
+                { weight: 40, reps: 10 },
+                { weight: 40, reps: 10 }
+            ];
+        }
+
+        // ============================================
+        // ЗАГРУЗКА ДАННЫХ
+        // ============================================
+        async function loadExercises() {
+            try {
+                exercises = await API.getExercises();
+                renderExercisesList();
+                populateStatsSelect();
+            } catch (error) {
+                console.error('Ошибка загрузки упражнений:', error);
+                alert('Не удалось загрузить упражнения. Проверьте подключение.');
+            }
+        }
+
+        // ============================================
+        // НАВИГАЦИЯ
+        // ============================================
+        function showPage(pageName) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+            document.getElementById('page-' + pageName).classList.add('active');
+            event.target.closest('.nav-btn').classList.add('active');
+
+            window.scrollTo(0, 0);
+
+            // Загрузить данные для страницы
+            if (pageName === 'history') {
+                loadHistory();
+            }
+        }
+
+        // ============================================
+        // ДАТА
+        // ============================================
+        function openDatePicker() {
+            document.getElementById('workout-date').showPicker();
+        }
+
+        document.getElementById('workout-date').addEventListener('change', (e) => {
+            workoutDate = e.target.value;
+            updateDateDisplay();
+        });
+
+        function updateDateDisplay() {
+            const date = new Date(workoutDate);
+            const options = { weekday: 'long', day: 'numeric', month: 'long' };
+            const formatted = date.toLocaleDateString('ru-RU', options);
+            document.getElementById('workout-date-display').textContent = formatted.charAt(0).toUpperCase() + formatted.slice(1);
+
+            // Обновить заголовок
+            const today = new Date().toISOString().split('T')[0];
+            const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+            if (workoutDate === today) {
+                document.getElementById('header-date').textContent = 'Сегодня';
+            } else if (workoutDate === yesterday) {
+                document.getElementById('header-date').textContent = 'Вчера';
+            } else {
+                document.getElementById('header-date').textContent = date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+            }
+        }
+
+        // ============================================
+        // СТРАНИЦА ТРЕНИРОВКИ
+        // ============================================
+        function showAddExerciseModal() {
+            const modal = document.getElementById('add-exercise-modal');
+            const list = document.getElementById('exercise-select-list');
+
+            // Группировка по категориям
+            const byCategory = {};
+            exercises.forEach(ex => {
+                if (!byCategory[ex.category]) {
+                    byCategory[ex.category] = [];
+                }
+                byCategory[ex.category].push(ex);
+            });
+
+            // Отдельно базовые и изолирующие
+            const baseCategories = ['Грудь', 'Спина', 'Плечи', 'Ноги'];
+
+            let html = '<div class="section-title">Базовые</div>';
+            baseCategories.forEach(cat => {
+                if (byCategory[cat]) {
+                    html += `<div class="category-section">
+                        <div class="category-title">${cat}</div>
+                        <div class="exercises-grid">
+                            ${byCategory[cat].filter(e => e.type === 'base').map(ex => `
+                                <button class="exercise-tag" onclick="addExerciseToWorkout('${ex.id}')">
+                                    <div class="exercise-tag-icon">${getExerciseIcon(ex.category)}</div>
+                                    ${ex.name}
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>`;
+                }
+            });
+
+            html += '<div class="section-title" style="margin-top: 24px;">Изолирующие</div>';
+            Object.entries(byCategory).forEach(([cat, exs]) => {
+                const isolations = exs.filter(e => e.type === 'isolation' || e.type === 'custom');
+                if (isolations.length > 0) {
+                    html += `<div class="category-section">
+                        <div class="category-title">${cat}</div>
+                        <div class="exercises-grid">
+                            ${isolations.map(ex => `
+                                <button class="exercise-tag" onclick="addExerciseToWorkout('${ex.id}')">
+                                    <div class="exercise-tag-icon">${getExerciseIcon(ex.category)}</div>
+                                    ${ex.name}
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>`;
+                }
+            });
+
+            list.innerHTML = html;
+            modal.classList.remove('hidden');
+        }
+
+        function hideAddExerciseModal() {
+            document.getElementById('add-exercise-modal').classList.add('hidden');
+        }
+
+        function getExerciseIcon(category) {
+            const icons = {
+                'Грудь': '💪',
+                'Спина': '🏋️',
+                'Плечи': '🎯',
+                'Ноги': '🦵',
+                'Бицепс': '💪',
+                'Трицепс': '💪',
+                'Икры': '🦶',
+                'Кор': '🧘'
+            };
+            return icons[category] || '🏋️';
+        }
+
+        function addExerciseToWorkout(exerciseId) {
+            const exercise = exercises.find(e => e.id === exerciseId);
+            if (!exercise) return;
+
+            // Получаем данные с прошлой тренировки
+            const lastData = getLastExerciseData(exerciseId);
+
+            // Добавляем упражнение с 3 подходами (данные из истории или по умолчанию)
+            const sets = [];
+            for (let i = 0; i < 3; i++) {
+                if (lastData[i]) {
+                    sets.push({
+                        weight: lastData[i].weight || 40,
+                        reps: lastData[i].reps || 10
+                    });
+                } else {
+                    // Если в истории меньше 3 подходов, берём последний известный или дефолт
+                    const lastKnown = lastData[lastData.length - 1] || { weight: 40, reps: 10 };
+                    sets.push({
+                        weight: lastKnown.weight || 40,
+                        reps: lastKnown.reps || 10
+                    });
+                }
+            }
+
+            currentWorkout.push({
+                exercise: exercise,
+                sets: sets
+            });
+
+            renderCurrentWorkout();
+            hideAddExerciseModal();
+        }
+
+        function renderCurrentWorkout() {
+            const container = document.getElementById('exercises-container');
+
+            if (currentWorkout.length === 0) {
+                container.innerHTML = '<div class="empty-state">Добавьте упражнение, чтобы начать тренировку</div>';
+                document.getElementById('save-workout-btn').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('save-workout-btn').style.display = 'flex';
+
+            container.innerHTML = currentWorkout.map((item, exIndex) => `
+                <div class="exercise-card">
+                    <div class="exercise-card-header">
+                        <div class="exercise-icon">${getExerciseIcon(item.exercise.category)}</div>
+                        <div class="exercise-info">
+                            <div class="exercise-name">${item.exercise.name}</div>
+                            <div class="exercise-category">${item.exercise.category}</div>
+                        </div>
+                        <button class="btn-icon danger" onclick="removeExercise(${exIndex})">×</button>
+                    </div>
+                    <div class="exercise-card-body">
+                        <div class="sets-header">
+                            <span></span>
+                            <span>Вес</span>
+                            <span>Повторы</span>
+                            <span></span>
+                        </div>
+                        ${item.sets.map((set, setIndex) => `
+                            <div class="set-row">
+                                <span class="set-num">${setIndex + 1}</span>
+                                <input type="number" class="set-input" placeholder="кг" value="${set.weight}"
+                                    onchange="updateSet(${exIndex}, ${setIndex}, 'weight', this.value)">
+                                <input type="number" class="set-input" placeholder="0" value="${set.reps}"
+                                    onchange="updateSet(${exIndex}, ${setIndex}, 'reps', this.value)">
+                                <button class="btn-icon danger" style="width:32px;height:32px;"
+                                    onclick="removeSet(${exIndex}, ${setIndex})" ${item.sets.length === 1 ? 'disabled' : ''}>×</button>
+                            </div>
+                        `).join('')}
+                        <button class="add-set-btn" onclick="addSet(${exIndex})">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                            Добавить подход
+                        </button>
+                        <button class="timer-btn" onclick="startTimer()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M12 6v6l4 2"/>
+                            </svg>
+                            Таймер отдыха · 2:00
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateSet(exIndex, setIndex, field, value) {
+            currentWorkout[exIndex].sets[setIndex][field] = value;
+        }
+
+        function addSet(exIndex) {
+            currentWorkout[exIndex].sets.push({ weight: '', reps: '' });
+            renderCurrentWorkout();
+        }
+
+        function removeSet(exIndex, setIndex) {
+            if (currentWorkout[exIndex].sets.length > 1) {
+                currentWorkout[exIndex].sets.splice(setIndex, 1);
+                renderCurrentWorkout();
+            }
+        }
+
+        function removeExercise(exIndex) {
+            currentWorkout.splice(exIndex, 1);
+            renderCurrentWorkout();
+        }
+
+        async function saveWorkout() {
+            // Собираем все подходы
+            const workouts = [];
+
+            currentWorkout.forEach(item => {
+                item.sets.forEach((set, index) => {
+                    const weight = parseFloat(set.weight) || 0;
+                    const reps = parseInt(set.reps) || 0;
+
+                    if (weight > 0 || reps > 0) {
+                        workouts.push({
+                            date: workoutDate,
+                            exercise_id: item.exercise.id,
+                            exercise_name: item.exercise.name,
+                            set_number: index + 1,
+                            weight: weight,
+                            reps: reps
+                        });
+                    }
+                });
+            });
+
+            if (workouts.length === 0) {
+                alert('Заполните хотя бы один подход');
+                return;
+            }
+
+            try {
+                document.getElementById('loading').classList.remove('hidden');
+                await API.addWorkouts(workouts);
+
+                alert('Тренировка сохранена!');
+                currentWorkout = [];
+                renderCurrentWorkout();
+            } catch (error) {
+                alert('Ошибка сохранения: ' + error.message);
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+            }
+        }
+
+        // ============================================
+        // ТАЙМЕР
+        // ============================================
+        let timerSeconds = 120;
+        let timerInterval = null;
+        let timerTotal = 120;
+
+        function startTimer(seconds = 120) {
+            timerSeconds = seconds;
+            timerTotal = seconds;
+            document.getElementById('timer-modal').classList.remove('hidden');
+            updateTimerDisplay();
+
+            timerInterval = setInterval(() => {
+                timerSeconds--;
+                updateTimerDisplay();
+
+                if (timerSeconds <= 0) {
+                    stopTimer();
+                    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                    playBeep();
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+            document.getElementById('timer-modal').classList.add('hidden');
+        }
+
+        function addTimerTime(seconds) {
+            timerSeconds += seconds;
+            timerTotal += seconds;
+            updateTimerDisplay();
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(timerSeconds / 60);
+            const secs = timerSeconds % 60;
+            document.getElementById('timer-display').textContent =
+                mins.toString().padStart(2, '0') + ':' + secs.toString().padStart(2, '0');
+
+            // Обновить круговой прогресс
+            const progress = document.getElementById('timer-progress');
+            const circumference = 2 * Math.PI * 90;
+            const offset = circumference - (timerSeconds / timerTotal) * circumference;
+            progress.style.strokeDasharray = circumference;
+            progress.style.strokeDashoffset = offset;
+        }
+
+        function playBeep() {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.value = 800;
+            gain.gain.value = 0.3;
+            osc.start();
+            setTimeout(() => osc.stop(), 200);
+        }
+
+        // ============================================
+        // ИСТОРИЯ
+        // ============================================
+        async function loadHistory() {
+            const container = document.getElementById('history-container');
+
+            try {
+                const workouts = await API.getWorkouts();
+
+                if (workouts.length === 0) {
+                    container.innerHTML = '<div class="empty-state">Пока нет записей</div>';
+                    return;
+                }
+
+                // Группировка по дате и упражнению
+                const grouped = {};
+                workouts.forEach(w => {
+                    const dateKey = w.date;
+                    if (!grouped[dateKey]) {
+                        grouped[dateKey] = {};
+                    }
+                    if (!grouped[dateKey][w.exercise_id]) {
+                        grouped[dateKey][w.exercise_id] = {
+                            name: w.exercise_name,
+                            sets: []
+                        };
+                    }
+                    grouped[dateKey][w.exercise_id].sets.push({
+                        weight: w.weight,
+                        reps: w.reps
+                    });
+                });
+
+                // Рендер
+                let html = '';
+                const dates = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
+
+                dates.forEach(dateKey => {
+                    const date = new Date(dateKey);
+                    const today = new Date().toISOString().split('T')[0];
+                    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+                    let dateLabel;
+                    if (dateKey === today) {
+                        dateLabel = 'Сегодня';
+                    } else if (dateKey === yesterday) {
+                        dateLabel = 'Вчера';
+                    } else {
+                        dateLabel = date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+                    }
+
+                    html += `<div class="history-group">
+                        <div class="history-date">${dateLabel}</div>`;
+
+                    Object.values(grouped[dateKey]).forEach(ex => {
+                        const exerciseData = exercises.find(e => e.name === ex.name);
+                        const icon = exerciseData ? getExerciseIcon(exerciseData.category) : '🏋️';
+
+                        html += `
+                            <div class="history-card">
+                                <div class="history-icon">${icon}</div>
+                                <div class="history-info">
+                                    <div class="history-exercise">${ex.name}</div>
+                                    <div class="history-details">${ex.sets.length} подходов</div>
+                                    <div class="history-sets">
+                                        ${ex.sets.map(s => `<span class="history-set">${s.weight}кг × ${s.reps}</span>`).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    html += '</div>';
+                });
+
+                container.innerHTML = html;
+            } catch (error) {
+                container.innerHTML = '<div class="empty-state">Ошибка загрузки</div>';
+            }
+        }
+
+        // ============================================
+        // СТАТИСТИКА
+        // ============================================
+        function populateStatsSelect() {
+            const select = document.getElementById('stats-exercise-select');
+            select.innerHTML = '<option value="">Выберите упражнение...</option>';
+
+            exercises.forEach(ex => {
+                const option = document.createElement('option');
+                option.value = ex.id;
+                option.textContent = ex.name;
+                select.appendChild(option);
+            });
+        }
+
+        async function loadStats() {
+            const select = document.getElementById('stats-exercise-select');
+            const exerciseId = select.value;
+
+            if (!exerciseId) {
+                document.getElementById('stats-container').style.display = 'none';
+                document.getElementById('stats-empty').style.display = 'block';
+                return;
+            }
+
+            try {
+                const stats = await API.getStats(exerciseId);
+
+                document.getElementById('stat-max-weight').textContent = stats.maxWeight + ' кг';
+                document.getElementById('stat-total-sets').textContent = stats.totalSets;
+                document.getElementById('stat-total-reps').textContent = stats.totalReps;
+
+                if (stats.lastWorkout) {
+                    const date = new Date(stats.lastWorkout.date);
+                    document.getElementById('stat-last-date').textContent =
+                        date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+                } else {
+                    document.getElementById('stat-last-date').textContent = '—';
+                }
+
+                // График
+                renderWeightChart(stats.workouts);
+
+                document.getElementById('stats-container').style.display = 'block';
+                document.getElementById('stats-empty').style.display = 'none';
+            } catch (error) {
+                console.error('Ошибка загрузки статистики:', error);
+            }
+        }
+
+        function renderWeightChart(workouts) {
+            const ctx = document.getElementById('weight-chart').getContext('2d');
+
+            if (weightChart) {
+                weightChart.destroy();
+            }
+
+            // Группировка по дате (максимальный вес за день)
+            const byDate = {};
+            workouts.forEach(w => {
+                const date = w.date;
+                if (!byDate[date] || w.weight > byDate[date]) {
+                    byDate[date] = parseFloat(w.weight) || 0;
+                }
+            });
+
+            const labels = Object.keys(byDate).map(d =>
+                new Date(d).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
+            );
+            const data = Object.values(byDate);
+
+            weightChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Вес (кг)',
+                        data: data,
+                        borderColor: '#FF6B35',
+                        backgroundColor: 'rgba(255, 107, 53, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: false }
+                    }
+                }
+            });
+        }
+
+        // ============================================
+        // СТРАНИЦА УПРАЖНЕНИЙ
+        // ============================================
+        function renderExercisesList() {
+            const container = document.getElementById('exercises-list-container');
+
+            // Группировка
+            const byCategory = {};
+            exercises.forEach(ex => {
+                if (!byCategory[ex.category]) {
+                    byCategory[ex.category] = [];
+                }
+                byCategory[ex.category].push(ex);
+            });
+
+            const baseCategories = ['Грудь', 'Спина', 'Плечи', 'Ноги'];
+
+            let html = '<div class="section-title">Базовые</div>';
+            baseCategories.forEach(cat => {
+                if (byCategory[cat]) {
+                    const baseExs = byCategory[cat].filter(e => e.type === 'base');
+                    if (baseExs.length > 0) {
+                        html += `<div class="category-section">
+                            <div class="category-title">${cat}</div>
+                            <div class="exercises-grid">
+                                ${baseExs.map(ex => `
+                                    <div class="exercise-tag">
+                                        <div class="exercise-tag-icon">${getExerciseIcon(cat)}</div>
+                                        ${ex.name}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>`;
+                    }
+                }
+            });
+
+            html += '<div class="section-title" style="margin-top: 24px;">Изолирующие</div>';
+            Object.entries(byCategory).forEach(([cat, exs]) => {
+                const isolations = exs.filter(e => e.type === 'isolation' || e.type === 'custom');
+                if (isolations.length > 0) {
+                    html += `<div class="category-section">
+                        <div class="category-title">${cat}</div>
+                        <div class="exercises-grid">
+                            ${isolations.map(ex => `
+                                <div class="exercise-tag">
+                                    <div class="exercise-tag-icon">${getExerciseIcon(cat)}</div>
+                                    ${ex.name}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>`;
+                }
+            });
+
+            container.innerHTML = html;
+        }
+    </script>
+</body>
+</html>

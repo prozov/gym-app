@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Дневник тренировок</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #FF6B35;
+            --primary-light: #FFF4F0;
+            --primary-dark: #E55A2B;
+            --success: #4CAF50;
+            --danger: #FF5252;
+            --bg: #F8F9FA;
+            --card: #FFFFFF;
+            --text: #1A1A2E;
+            --text-light: #8E8E93;
+            --text-muted: #AEAEB2;
+            --border: #F0F0F0;
+            --radius: 16px;
+            --radius-lg: 24px;
+            --shadow: 0 4px 20px rgba(0,0,0,0.05);
+            --shadow-lg: 0 8px 30px rgba(0,0,0,0.08);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding-bottom: 90px;
+        }
+
+        /* === Header === */
+        .header {
+            padding: 16px 20px;
+            background: var(--card);
+        }
+
+        .header-greeting {
+            font-size: 14px;
+            color: var(--text-light);
+        }
+
+        .header-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        /* === Навигация === */
+        .nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            background: var(--card);
+            padding: 8px 16px 24px;
+            border-radius: 24px 24px 0 0;
+            box-shadow: 0 -4px 30px rgba(0,0,0,0.08);
+            z-index: 100;
+        }
+
+        .nav-btn {
+            flex: 1;
+            padding: 10px 4px;
+            border: none;
+            background: none;
+            font-size: 11px;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s;
+        }
+
+        .nav-btn.active {
+            color: var(--primary);
+        }
+
+        .nav-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .nav-btn.active svg {
+            stroke: var(--primary);
+        }
+
+        /* === Контейнер === */
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* === Страницы === */
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: var(--text);
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+            margin-top: 24px;
+        }
+
+        .section-title:first-child {
+            margin-top: 0;
+        }
+
+        /* === Карточки === */
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-weight: 600;
+            font-size: 17px;
+        }
+
+        .card-subtitle {
+            font-size: 13px;
+            color: var(--text-light);
+        }
+
+        /* === Кнопки === */
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:active {
+            background: var(--primary-dark);
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px dashed var(--border);
+            color: var(--text-light);
+        }
+
+        .btn-small {
+            padding: 10px 20px;
+            font-size: 14px;
+            width: auto;
+        }
+
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--bg);
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.2s;
+        }
+
+        .btn-icon:active {
+            background: var(--border);
+        }
+
+        .btn-icon.danger {
+            color: var(--danger);
+        }
+
+        /* === Формы === */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-light);
+            margin-bottom: 8px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-size: 16px;
+            background: var(--card);
+            color: var(--text);
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        input::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* === Дата === */
+        .date-picker {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: var(--card);
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .date-picker-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--primary-light);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+        }
+
+        .date-picker-text {
+            flex: 1;
+        }
+
+        .date-picker-label {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .date-picker-value {
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        /* === Упражнение === */
+        .exercise-card {
+            background: var(--card);
+            border-radius: var(--radius-lg);
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .exercise-card-header {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            gap: 14px;
+        }
+
+        .exercise-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--primary-light);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .exercise-info {
+            flex: 1;
+        }
+
+        .exercise-name {
+            font-weight: 600;
+            font-size: 17px;
+        }
+
+        .exercise-category {
+            font-size: 13px;
+            color: var(--text-light);
+            margin-top: 2px;
+        }
+
+        .exercise-card-body {
+            padding: 0 20px 20px;
+        }
+
+        /* === Подходы === */
+        .sets-header {
+            display: grid;
+            grid-template-columns: 36px 1fr 1fr 36px;
+            gap: 10px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-muted);
+            padding: 0 4px 10px;
+            text-align: center;
+        }
+
+        .set-row {
+            display: grid;
+            grid-template-columns: 36px 1fr 1fr 36px;
+            gap: 10px;
+            align-items: center;
+            padding: 8px 0;
+        }
+
+        .set-num {
+            width: 36px;
+            height: 36px;
+            background: var(--primary);
+            color: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .set-input {
+            padding: 12px;
+            text-align: center;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+
+        .add-set-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px;
+            background: var(--bg);
+            border: none;
+            border-radius: 12px;
+            color: var(--primary);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 12px;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .add-set-btn:active {
+            background: var(--border);
+        }
+
+        /* === Таймер кнопка === */
+        .timer-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 12px;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .timer-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* === Модальное окно таймера === */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal.hidden {
+            display: none;
+        }
+
+        .modal-content {
+            background: var(--card);
+            padding: 40px;
+            border-radius: var(--radius-lg);
+            text-align: center;
+            width: 320px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .timer-circle {
+            width: 200px;
+            height: 200px;
+            margin: 30px auto;
+            position: relative;
+        }
+
+        .timer-circle-bg {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .timer-display {
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--primary);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 12px;
+        }
+
+        .timer-controls .btn {
+            flex: 1;
+        }
+
+        /* === История === */
+        .history-group {
+            margin-bottom: 24px;
+        }
+
+        .history-date {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .history-date::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--primary);
+            border-radius: 50%;
+        }
+
+        .history-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .history-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--primary-light);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .history-info {
+            flex: 1;
+        }
+
+        .history-exercise {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .history-details {
+            font-size: 13px;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
+        .history-sets {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .history-set {
+            background: var(--bg);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* === Статистика === */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--card);
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .stat-card.highlight {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-light);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+            font-size: 20px;
+        }
+
+        .stat-card.highlight .stat-icon {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
+        .stat-card.highlight .stat-label {
+            color: rgba(255,255,255,0.8);
+        }
+
+        /* === Круговой прогресс === */
+        .progress-ring {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 16px;
+        }
+
+        .chart-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+        }
+
+        .chart-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .chart-placeholder {
+            height: 160px;
+            background: linear-gradient(180deg, var(--primary-light) 0%, transparent 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            padding: 20px;
+        }
+
+        .chart-bar {
+            width: 24px;
+            background: var(--primary);
+            border-radius: 6px 6px 0 0;
+            transition: height 0.3s;
+        }
+
+        /* === Упражнения каталог === */
+        .category-section {
+            margin-bottom: 24px;
+        }
+
+        .category-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .category-title::before {
+            content: '';
+            width: 4px;
+            height: 16px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+
+        .exercises-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .exercise-tag {
+            background: var(--card);
+            border: none;
+            padding: 16px;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            text-align: left;
+            transition: all 0.2s;
+        }
+
+        .exercise-tag:active {
+            transform: scale(0.98);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .exercise-tag-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--primary-light);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        /* === Добавить упражнение === */
+        .add-exercise-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+        }
+
+        .muscle-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .muscle-chip {
+            padding: 10px 16px;
+            border-radius: 20px;
+            border: 2px solid var(--border);
+            background: var(--card);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .muscle-chip.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .muscle-chip:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== СТРАНИЦА: ТРЕНИРОВКА ==================== -->
+    <section id="page-workout" class="page active">
+        <div class="header">
+            <div class="header-greeting">Сегодня, 9 декабря</div>
+            <div class="header-title">Новая тренировка</div>
+        </div>
+
+        <div class="container">
+            <!-- Дата -->
+            <div class="date-picker">
+                <div class="date-picker-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                </div>
+                <div class="date-picker-text">
+                    <div class="date-picker-label">Дата тренировки</div>
+                    <div class="date-picker-value">Понедельник, 9 декабря</div>
+                </div>
+                <button class="btn-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 18l6-6-6-6"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Упражнение 1 -->
+            <div class="exercise-card">
+                <div class="exercise-card-header">
+                    <div class="exercise-icon">💪</div>
+                    <div class="exercise-info">
+                        <div class="exercise-name">Жим в тренажёре сидя</div>
+                        <div class="exercise-category">Грудь</div>
+                    </div>
+                    <button class="btn-icon danger">×</button>
+                </div>
+                <div class="exercise-card-body">
+                    <div class="sets-header">
+                        <span></span>
+                        <span>Вес</span>
+                        <span>Повторы</span>
+                        <span></span>
+                    </div>
+                    <div class="set-row">
+                        <span class="set-num">1</span>
+                        <input type="number" class="set-input" value="40" placeholder="кг">
+                        <input type="number" class="set-input" value="12">
+                        <button class="btn-icon danger" style="width:32px;height:32px;">×</button>
+                    </div>
+                    <div class="set-row">
+                        <span class="set-num">2</span>
+                        <input type="number" class="set-input" value="45" placeholder="кг">
+                        <input type="number" class="set-input" value="10">
+                        <button class="btn-icon danger" style="width:32px;height:32px;">×</button>
+                    </div>
+                    <div class="set-row">
+                        <span class="set-num">3</span>
+                        <input type="number" class="set-input" value="50" placeholder="кг">
+                        <input type="number" class="set-input" value="8">
+                        <button class="btn-icon danger" style="width:32px;height:32px;">×</button>
+                    </div>
+                    <button class="add-set-btn" onclick="alert('Подход добавлен!')">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        Добавить подход
+                    </button>
+                    <button class="timer-btn" onclick="showTimer()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 6v6l4 2"/>
+                        </svg>
+                        Таймер отдыха · 1:30
+                    </button>
+                </div>
+            </div>
+
+            <!-- Упражнение 2 -->
+            <div class="exercise-card">
+                <div class="exercise-card-header">
+                    <div class="exercise-icon">🏋️</div>
+                    <div class="exercise-info">
+                        <div class="exercise-name">Подтягивания</div>
+                        <div class="exercise-category">Спина</div>
+                    </div>
+                    <button class="btn-icon danger">×</button>
+                </div>
+                <div class="exercise-card-body">
+                    <div class="sets-header">
+                        <span></span>
+                        <span>Вес</span>
+                        <span>Повторы</span>
+                        <span></span>
+                    </div>
+                    <div class="set-row">
+                        <span class="set-num">1</span>
+                        <input type="number" class="set-input" value="0" placeholder="кг">
+                        <input type="number" class="set-input" value="10">
+                        <button class="btn-icon danger" style="width:32px;height:32px;">×</button>
+                    </div>
+                    <div class="set-row">
+                        <span class="set-num">2</span>
+                        <input type="number" class="set-input" value="0" placeholder="кг">
+                        <input type="number" class="set-input" value="8">
+                        <button class="btn-icon danger" style="width:32px;height:32px;">×</button>
+                    </div>
+                    <button class="add-set-btn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        Добавить подход
+                    </button>
+                    <button class="timer-btn" onclick="showTimer()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 6v6l4 2"/>
+                        </svg>
+                        Таймер отдыха · 1:30
+                    </button>
+                </div>
+            </div>
+
+            <!-- Добавить упражнение -->
+            <button class="btn btn-secondary" onclick="alert('Выберите группу мышц')" style="margin-bottom: 16px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Добавить упражнение
+            </button>
+
+            <!-- Завершить -->
+            <button class="btn btn-primary" onclick="alert('Тренировка сохранена!')">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 6L9 17l-5-5"/>
+                </svg>
+                Завершить тренировку
+            </button>
+        </div>
+    </section>
+
+    <!-- ==================== СТРАНИЦА: ИСТОРИЯ ==================== -->
+    <section id="page-history" class="page">
+        <div class="header">
+            <div class="header-title">История</div>
+        </div>
+
+        <div class="container">
+            <div class="history-group">
+                <div class="history-date">Сегодня</div>
+
+                <div class="history-card">
+                    <div class="history-icon">💪</div>
+                    <div class="history-info">
+                        <div class="history-exercise">Жим в тренажёре сидя</div>
+                        <div class="history-details">Грудь · 3 подхода</div>
+                        <div class="history-sets">
+                            <span class="history-set">40кг × 12</span>
+                            <span class="history-set">45кг × 10</span>
+                            <span class="history-set">50кг × 8</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="history-card">
+                    <div class="history-icon">🏋️</div>
+                    <div class="history-info">
+                        <div class="history-exercise">Подтягивания</div>
+                        <div class="history-details">Спина · 2 подхода</div>
+                        <div class="history-sets">
+                            <span class="history-set">0кг × 10</span>
+                            <span class="history-set">0кг × 8</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="history-group">
+                <div class="history-date">Вчера</div>
+
+                <div class="history-card">
+                    <div class="history-icon">🦵</div>
+                    <div class="history-info">
+                        <div class="history-exercise">Жим ногами</div>
+                        <div class="history-details">Ноги · 3 подхода</div>
+                        <div class="history-sets">
+                            <span class="history-set">100кг × 15</span>
+                            <span class="history-set">120кг × 12</span>
+                            <span class="history-set">140кг × 10</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="history-card">
+                    <div class="history-icon">🎯</div>
+                    <div class="history-info">
+                        <div class="history-exercise">Жим гантелей сидя</div>
+                        <div class="history-details">Плечи · 3 подхода</div>
+                        <div class="history-sets">
+                            <span class="history-set">16кг × 12</span>
+                            <span class="history-set">18кг × 10</span>
+                            <span class="history-set">20кг × 8</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="history-group">
+                <div class="history-date">6 декабря</div>
+
+                <div class="history-card">
+                    <div class="history-icon">💪</div>
+                    <div class="history-info">
+                        <div class="history-exercise">Брусья</div>
+                        <div class="history-details">Грудь · 3 подхода</div>
+                        <div class="history-sets">
+                            <span class="history-set">0кг × 15</span>
+                            <span class="history-set">5кг × 12</span>
+                            <span class="history-set">10кг × 10</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== СТРАНИЦА: СТАТИСТИКА ==================== -->
+    <section id="page-stats" class="page">
+        <div class="header">
+            <div class="header-title">Статистика</div>
+        </div>
+
+        <div class="container">
+            <div class="form-group">
+                <select>
+                    <option>Жим в тренажёре сидя</option>
+                    <option>Подтягивания</option>
+                    <option>Жим ногами</option>
+                    <option>Брусья</option>
+                </select>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card highlight">
+                    <div class="stat-icon">🏆</div>
+                    <div class="stat-value">50 кг</div>
+                    <div class="stat-label">Макс. вес</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-value">24</div>
+                    <div class="stat-label">Всего подходов</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🗓</div>
+                    <div class="stat-value">8</div>
+                    <div class="stat-label">Тренировок</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📈</div>
+                    <div class="stat-value">+15%</div>
+                    <div class="stat-label">Прогресс</div>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-title">Прогресс веса</div>
+                <div class="chart-placeholder">
+                    <div class="chart-bar" style="height: 40%;"></div>
+                    <div class="chart-bar" style="height: 50%;"></div>
+                    <div class="chart-bar" style="height: 45%;"></div>
+                    <div class="chart-bar" style="height: 60%;"></div>
+                    <div class="chart-bar" style="height: 70%;"></div>
+                    <div class="chart-bar" style="height: 65%;"></div>
+                    <div class="chart-bar" style="height: 80%;"></div>
+                    <div class="chart-bar" style="height: 90%;"></div>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-title">Объём тренировок</div>
+                <div class="chart-placeholder">
+                    <div class="chart-bar" style="height: 60%; background: var(--success);"></div>
+                    <div class="chart-bar" style="height: 75%; background: var(--success);"></div>
+                    <div class="chart-bar" style="height: 55%; background: var(--success);"></div>
+                    <div class="chart-bar" style="height: 80%; background: var(--success);"></div>
+                    <div class="chart-bar" style="height: 70%; background: var(--success);"></div>
+                    <div class="chart-bar" style="height: 90%; background: var(--success);"></div>
+                    <div class="chart-bar" style="height: 85%; background: var(--success);"></div>
+                    <div class="chart-bar" style="height: 95%; background: var(--success);"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== СТРАНИЦА: УПРАЖНЕНИЯ ==================== -->
+    <section id="page-exercises" class="page">
+        <div class="header">
+            <div class="header-title">Упражнения</div>
+        </div>
+
+        <div class="container">
+            <div class="section-title">Базовые</div>
+
+            <div class="category-section">
+                <div class="category-title">Грудь</div>
+                <div class="exercises-grid">
+                    <button class="exercise-tag">
+                        <div class="exercise-tag-icon">💪</div>
+                        Брусья
+                    </button>
+                    <button class="exercise-tag">
+                        <div class="exercise-tag-icon">🏋️</div>
+                        Жим в тренажёре
+                    </button>
+                </div>
+            </div>
+
+            <div class="category-section">
+                <div class="category-title">Спина</div>
+                <div class="exercises-grid">
+                    <button class="exercise-tag">
+                        <div class="exercise-tag-icon">🏋️</div>
+                        Подтягивания
+                    </button>
+                    <button class="exercise-tag">
+                        <div class="exercise-tag-icon">💪</div>
+                        Горизонт. тяги
+                    </button>
+                </div>
+            </div>
+
+            <div class="category-section">
+                <div class="category-title">Плечи</div>
+                <div class="exercises-grid">
+                    <button class="exercise-tag">
+                        <div class="exercise-tag-icon">🎯</div>
+                        Жим гантелей
+                    </button>
+                    <button class="exercise-tag">
+                        <div class="exercise-tag-icon">🏋️</div>
+                        Жим в тренажёре
+                    </button>
+                </div>
+            </div>
+
+            <div class="category-section">
+                <div class="category-title">Ноги</div>
+                <div class="exercises-grid">
+                    <button class="exercise-tag">
+                        <div class="exercise-tag-icon">🦵</div>
+                        Жим ногами
+                    </button>
+                    <button class="exercise-tag">
+                        <div class="exercise-tag-icon">🏋️</div>
+                        Гакк-приседания
+                    </button>
+                </div>
+            </div>
+
+            <div class="section-title">Изолирующие</div>
+
+            <div class="category-section">
+                <div class="category-title">Грудь / Спина</div>
+                <div class="exercises-grid">
+                    <button class="exercise-tag">
+                        <div class="exercise-tag-icon">🦋</div>
+                        Бабочка
+                    </button>
+                    <button class="exercise-tag">
+                        <div class="exercise-tag-icon">🔄</div>
+                        Обр. разведение
+                    </button>
+                </div>
+            </div>
+
+            <div class="category-section">
+                <div class="category-title">Руки / Кор</div>
+                <div class="exercises-grid">
+                    <button class="exercise-tag">
+                        <div class="exercise-tag-icon">💪</div>
+                        Бицепс
+                    </button>
+                    <button class="exercise-tag">
+                        <div class="exercise-tag-icon">💪</div>
+                        Трицепс
+                    </button>
+                    <button class="exercise-tag">
+                        <div class="exercise-tag-icon">🦶</div>
+                        Икры
+                    </button>
+                    <button class="exercise-tag">
+                        <div class="exercise-tag-icon">🧘</div>
+                        Планка
+                    </button>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="alert('Добавить своё упражнение')" style="margin-top: 24px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Добавить своё упражнение
+            </button>
+        </div>
+    </section>
+
+    <!-- ==================== МОДАЛЬНОЕ ОКНО ТАЙМЕРА ==================== -->
+    <div id="timer-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-title">Отдых</div>
+            <div class="timer-circle">
+                <div class="timer-circle-bg">
+                    <div class="timer-display" id="timer-display">01:30</div>
+                </div>
+            </div>
+            <div class="timer-controls">
+                <button class="btn btn-secondary btn-small" onclick="addTime()">+15 сек</button>
+                <button class="btn btn-primary btn-small" onclick="hideTimer()">Готово</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== НАВИГАЦИЯ ==================== -->
+    <nav class="nav">
+        <button class="nav-btn active" onclick="showPage('workout')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Тренировка
+        </button>
+        <button class="nav-btn" onclick="showPage('history')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 8v4l3 3"/>
+                <circle cx="12" cy="12" r="10"/>
+            </svg>
+            История
+        </button>
+        <button class="nav-btn" onclick="showPage('stats')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 20V10M12 20V4M6 20v-6"/>
+            </svg>
+            Статистика
+        </button>
+        <button class="nav-btn" onclick="showPage('exercises')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+            Упражнения
+        </button>
+    </nav>
+
+    <script>
+        // Переключение страниц
+        function showPage(pageName) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+            document.getElementById('page-' + pageName).classList.add('active');
+            event.target.closest('.nav-btn').classList.add('active');
+
+            window.scrollTo(0, 0);
+        }
+
+        // Таймер
+        let timerSeconds = 90;
+        let timerInterval;
+
+        function showTimer() {
+            document.getElementById('timer-modal').classList.remove('hidden');
+            timerSeconds = 90;
+            updateTimerDisplay();
+
+            timerInterval = setInterval(() => {
+                timerSeconds--;
+                updateTimerDisplay();
+
+                if (timerSeconds <= 0) {
+                    hideTimer();
+                    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                    alert('Время отдыха закончилось!');
+                }
+            }, 1000);
+        }
+
+        function hideTimer() {
+            document.getElementById('timer-modal').classList.add('hidden');
+            clearInterval(timerInterval);
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(timerSeconds / 60);
+            const secs = timerSeconds % 60;
+            document.getElementById('timer-display').textContent =
+                mins.toString().padStart(2, '0') + ':' + secs.toString().padStart(2, '0');
+        }
+
+        function addTime() {
+            timerSeconds += 15;
+            updateTimerDisplay();
+        }
+    </script>
+
+</body>
+</html>
