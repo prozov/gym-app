@@ -4,7 +4,7 @@
  */
 
 const API = {
-    BASE_URL: 'https://script.google.com/macros/s/AKfycbyzuv-m36FVnSXRS-DnKfJ_QBqhJIxaSyGFUdgh26qm0eOsu8gy8CFVocXg0nhE6BNm/exec',
+    BASE_URL: 'https://script.google.com/macros/s/AKfycbzn-GME2mQveQocN-FywnrrVRw5bzJIRGVpOqSf_nt2DKJlCjf0DgTvQnSr62ve5ySjPA/exec',
 
     // Токен хранится в localStorage
     _token: null,
@@ -195,6 +195,31 @@ const API = {
      */
     async getStats(exerciseId) {
         return await this.get('getStats', { exerciseId });
+    },
+
+    // ============================================
+    // ПАРАМЕТРЫ ТЕЛА
+    // ============================================
+
+    /**
+     * Получить историю измерений тела
+     */
+    async getBodyMetrics(startDate = null, endDate = null) {
+        return await this.get('getBodyMetrics', { startDate, endDate });
+    },
+
+    /**
+     * Добавить измерение тела
+     */
+    async addBodyMetric(metric) {
+        return await this.post('addBodyMetric', { metric });
+    },
+
+    /**
+     * Удалить измерение тела
+     */
+    async deleteBodyMetric(id) {
+        return await this.post('deleteBodyMetric', { id });
     }
 };
 

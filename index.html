@@ -264,6 +264,107 @@
         </div>
     </section>
 
+    <!-- ==================== СТРАНИЦА: ПАРАМЕТРЫ ТЕЛА ==================== -->
+    <section id="page-body" class="page">
+        <div class="header">
+            <div class="header-title">Параметры тела</div>
+            <button class="user-profile-btn" onclick="showUserMenu()">
+                <img src="" alt="" class="user-avatar">
+            </button>
+        </div>
+
+        <div class="container">
+            <!-- Форма ввода -->
+            <div class="body-form-card">
+                <div class="body-form-header">
+                    <span class="body-form-icon">📏</span>
+                    <span class="body-form-title">Новое измерение</span>
+                </div>
+
+                <div class="body-metrics-grid">
+                    <div class="body-input-group">
+                        <label>Рост (см)</label>
+                        <input type="number" id="input-height" placeholder="178" step="0.1" oninput="updateBodyFatPreview()">
+                    </div>
+                    <div class="body-input-group">
+                        <label>Вес (кг)</label>
+                        <input type="number" id="input-weight" placeholder="80" step="0.1">
+                    </div>
+                    <div class="body-input-group">
+                        <label>Шея (см)</label>
+                        <input type="number" id="input-neck" placeholder="38" step="0.1" oninput="updateBodyFatPreview()">
+                    </div>
+                    <div class="body-input-group">
+                        <label>Талия (см)</label>
+                        <input type="number" id="input-waist" placeholder="85" step="0.1" oninput="updateBodyFatPreview()">
+                    </div>
+                </div>
+
+                <!-- Расчетный % жира -->
+                <div class="body-fat-preview" id="body-fat-preview" style="display: none;">
+                    <div class="body-fat-label">Процент жира (расчётный)</div>
+                    <div class="body-fat-value" id="body-fat-value">—</div>
+                    <div class="body-fat-formula">Формула ВМС США для мужчин</div>
+                </div>
+
+                <button class="btn btn-primary" onclick="saveBodyMetric()" id="save-metric-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 6L9 17l-5-5"/>
+                    </svg>
+                    Записать измерения
+                </button>
+            </div>
+
+            <!-- Текущие показатели -->
+            <div id="current-body-metrics" style="display: none;">
+                <div class="section-title">Текущие показатели</div>
+                <div class="stats-grid">
+                    <div class="stat-card highlight">
+                        <div class="stat-icon">⚖️</div>
+                        <div class="stat-value" id="current-weight-val">—</div>
+                        <div class="stat-label">Вес</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📉</div>
+                        <div class="stat-value" id="current-body-fat">—</div>
+                        <div class="stat-label">% жира</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📏</div>
+                        <div class="stat-value" id="current-waist">—</div>
+                        <div class="stat-label">Талия</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📈</div>
+                        <div class="stat-value" id="weight-change">—</div>
+                        <div class="stat-label">Изменение</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Графики -->
+            <div id="body-charts" style="display: none;">
+                <div class="chart-card">
+                    <div class="chart-title">Динамика веса</div>
+                    <canvas id="weight-body-chart"></canvas>
+                </div>
+
+                <div class="chart-card" style="margin-top: 16px;">
+                    <div class="chart-title">Динамика % жира</div>
+                    <canvas id="body-fat-chart"></canvas>
+                </div>
+            </div>
+
+            <!-- История измерений -->
+            <div id="body-metrics-history" style="display: none;">
+                <div class="section-title">История измерений</div>
+                <div id="body-metrics-history-list">
+                    <!-- Заполняется динамически -->
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- ==================== МОДАЛЬНОЕ ОКНО: ВЫБОР УПРАЖНЕНИЯ ==================== -->
     <div id="add-exercise-modal" class="modal hidden">
         <div class="modal-content modal-large">
@@ -386,6 +487,15 @@
             </svg>
             Упражнения
         </button>
+        <button class="nav-btn" onclick="showPage('body')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="5" r="3"/>
+                <path d="M12 8v8"/>
+                <path d="M9 21l3-5 3 5"/>
+                <path d="M7 12h10"/>
+            </svg>
+            Параметры
+        </button>
     </nav>
 
     <!-- Chart.js -->
@@ -411,6 +521,9 @@
         let lastWorkoutData = {}; // Кэш последних результатов по упражнениям
         let googleAuth = null;
         let isDemo = false; // Флаг демо-режима
+        let bodyMetrics = []; // История измерений тела
+        let weightBodyChart = null; // График веса тела
+        let bodyFatChart = null; // График % жира
 
         // ============================================
         // ДЕМО-ДАННЫЕ
@@ -760,6 +873,8 @@
             currentWorkout = [];
             lastWorkoutData = {};
             DEMO_WORKOUTS = [];
+            DEMO_BODY_METRICS = [];
+            bodyMetrics = [];
 
             document.body.classList.remove('demo-mode');
             document.getElementById('demo-banner').classList.add('hidden');
@@ -910,6 +1025,8 @@
                 loadHistory();
             } else if (pageName === 'stats') {
                 loadStats();
+            } else if (pageName === 'body') {
+                loadBodyMetrics();
             }
         }
 
@@ -1754,6 +1871,329 @@
             });
 
             container.innerHTML = html;
+        }
+
+        // ============================================
+        // ПАРАМЕТРЫ ТЕЛА
+        // ============================================
+
+        /**
+         * Расчет процента жира по формуле ВМС США (для мужчин)
+         * % жира = 495 / (1.0324 - 0.19077 * log10(талия - шея) + 0.15456 * log10(рост)) - 450
+         */
+        function calculateBodyFat(height, neck, waist) {
+            if (!height || !neck || !waist || waist <= neck) return null;
+
+            const logWaistNeck = Math.log10(waist - neck);
+            const logHeight = Math.log10(height);
+
+            const bodyFat = 495 / (1.0324 - 0.19077 * logWaistNeck + 0.15456 * logHeight) - 450;
+
+            return Math.max(0, Math.min(50, bodyFat)).toFixed(1); // Ограничиваем 0-50%
+        }
+
+        /**
+         * Обновление предпросмотра % жира при вводе
+         */
+        function updateBodyFatPreview() {
+            const height = parseFloat(document.getElementById('input-height').value);
+            const neck = parseFloat(document.getElementById('input-neck').value);
+            const waist = parseFloat(document.getElementById('input-waist').value);
+
+            const preview = document.getElementById('body-fat-preview');
+            const valueEl = document.getElementById('body-fat-value');
+
+            if (height && neck && waist && waist > neck) {
+                const bodyFat = calculateBodyFat(height, neck, waist);
+                valueEl.textContent = bodyFat + '%';
+                preview.style.display = 'block';
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+
+        /**
+         * Генерация демо-данных для параметров тела
+         */
+        let DEMO_BODY_METRICS = [];
+
+        function generateDemoBodyMetrics() {
+            const metrics = [];
+            const today = new Date();
+
+            // Генерируем данные за последние 8 недель (по одному измерению в неделю)
+            for (let i = 8; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i * 7);
+
+                const height = 178;
+                const weight = (82 - i * 0.3).toFixed(1); // Постепенное снижение веса
+                const neck = 38;
+                const waist = (90 - i * 0.5).toFixed(1); // Уменьшение талии
+
+                // Расчет % жира по формуле ВМС США
+                const bodyFat = calculateBodyFat(height, neck, parseFloat(waist));
+
+                metrics.push({
+                    id: 'bm_demo_' + i,
+                    date: date.toISOString().split('T')[0],
+                    height: height,
+                    weight: parseFloat(weight),
+                    neck: neck,
+                    waist: parseFloat(waist),
+                    body_fat_percent: bodyFat
+                });
+            }
+
+            return metrics;
+        }
+
+        /**
+         * Загрузка данных о параметрах тела
+         */
+        async function loadBodyMetrics() {
+            try {
+                if (isDemo) {
+                    if (DEMO_BODY_METRICS.length === 0) {
+                        DEMO_BODY_METRICS = generateDemoBodyMetrics();
+                    }
+                    bodyMetrics = DEMO_BODY_METRICS;
+                } else {
+                    bodyMetrics = await API.getBodyMetrics();
+                }
+
+                renderBodyMetrics();
+            } catch (error) {
+                console.error('Ошибка загрузки параметров тела:', error);
+            }
+        }
+
+        /**
+         * Отрисовка страницы параметров тела
+         */
+        function renderBodyMetrics() {
+            const currentMetrics = document.getElementById('current-body-metrics');
+            const bodyCharts = document.getElementById('body-charts');
+            const metricsHistory = document.getElementById('body-metrics-history');
+
+            if (bodyMetrics.length === 0) {
+                currentMetrics.style.display = 'none';
+                bodyCharts.style.display = 'none';
+                metricsHistory.style.display = 'none';
+                return;
+            }
+
+            // Показываем секции
+            currentMetrics.style.display = 'block';
+            bodyCharts.style.display = 'block';
+            metricsHistory.style.display = 'block';
+
+            // Текущие показатели (последнее измерение)
+            const latest = bodyMetrics[0];
+            document.getElementById('current-weight-val').textContent = latest.weight + ' кг';
+            document.getElementById('current-body-fat').textContent = latest.body_fat_percent + '%';
+            document.getElementById('current-waist').textContent = latest.waist + ' см';
+
+            // Изменение веса за последний месяц
+            const monthAgo = new Date();
+            monthAgo.setMonth(monthAgo.getMonth() - 1);
+            const oldMetric = bodyMetrics.find(m => new Date(m.date) <= monthAgo);
+
+            if (oldMetric) {
+                const change = (latest.weight - oldMetric.weight).toFixed(1);
+                const changeText = change > 0 ? '+' + change : change;
+                document.getElementById('weight-change').textContent = changeText + ' кг';
+            } else if (bodyMetrics.length > 1) {
+                const oldest = bodyMetrics[bodyMetrics.length - 1];
+                const change = (latest.weight - oldest.weight).toFixed(1);
+                const changeText = change > 0 ? '+' + change : change;
+                document.getElementById('weight-change').textContent = changeText + ' кг';
+            }
+
+            // Автозаполнение роста из последнего измерения
+            if (latest.height && !document.getElementById('input-height').value) {
+                document.getElementById('input-height').value = latest.height;
+            }
+
+            // Графики
+            renderWeightBodyChart();
+            renderBodyFatChart();
+
+            // История
+            renderBodyMetricsHistory();
+        }
+
+        /**
+         * Отрисовка графика веса тела
+         */
+        function renderWeightBodyChart() {
+            const ctx = document.getElementById('weight-body-chart').getContext('2d');
+
+            if (weightBodyChart) {
+                weightBodyChart.destroy();
+            }
+
+            const sortedMetrics = [...bodyMetrics].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            const labels = sortedMetrics.map(m =>
+                new Date(m.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
+            );
+            const data = sortedMetrics.map(m => parseFloat(m.weight));
+
+            weightBodyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Вес (кг)',
+                        data: data,
+                        borderColor: '#FF6B35',
+                        backgroundColor: 'rgba(255, 107, 53, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            ticks: {
+                                callback: value => value + ' кг'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        /**
+         * Отрисовка графика % жира
+         */
+        function renderBodyFatChart() {
+            const ctx = document.getElementById('body-fat-chart').getContext('2d');
+
+            if (bodyFatChart) {
+                bodyFatChart.destroy();
+            }
+
+            const sortedMetrics = [...bodyMetrics].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            const labels = sortedMetrics.map(m =>
+                new Date(m.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
+            );
+            const data = sortedMetrics.map(m => parseFloat(m.body_fat_percent));
+
+            bodyFatChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '% жира',
+                        data: data,
+                        borderColor: '#4CAF50',
+                        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            ticks: {
+                                callback: value => value + '%'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        /**
+         * Отрисовка истории измерений
+         */
+        function renderBodyMetricsHistory() {
+            const container = document.getElementById('body-metrics-history-list');
+
+            container.innerHTML = bodyMetrics.slice(0, 10).map(m => {
+                const date = new Date(m.date);
+                const dateStr = date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+
+                return `
+                    <div class="body-metric-history-card">
+                        <div class="body-metric-date">${dateStr}</div>
+                        <div class="body-metric-values">
+                            <span class="body-metric-tag">⚖️ ${m.weight} кг</span>
+                            <span class="body-metric-tag">📉 ${m.body_fat_percent}%</span>
+                            <span class="body-metric-tag">📏 ${m.waist} см</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        /**
+         * Сохранение измерений тела
+         */
+        async function saveBodyMetric() {
+            const height = parseFloat(document.getElementById('input-height').value);
+            const weight = parseFloat(document.getElementById('input-weight').value);
+            const neck = parseFloat(document.getElementById('input-neck').value);
+            const waist = parseFloat(document.getElementById('input-waist').value);
+
+            if (!height || !weight || !neck || !waist) {
+                alert('Заполните все поля');
+                return;
+            }
+
+            if (waist <= neck) {
+                alert('Охват талии должен быть больше охвата шеи');
+                return;
+            }
+
+            const bodyFat = calculateBodyFat(height, neck, waist);
+
+            const metric = {
+                date: new Date().toISOString().split('T')[0],
+                height: height,
+                weight: weight,
+                neck: neck,
+                waist: waist,
+                body_fat_percent: bodyFat
+            };
+
+            if (isDemo) {
+                showDemoSaveModal();
+                return;
+            }
+
+            try {
+                document.getElementById('loading').classList.remove('hidden');
+                await API.addBodyMetric(metric);
+
+                // Очищаем поля (кроме роста)
+                document.getElementById('input-weight').value = '';
+                document.getElementById('input-neck').value = '';
+                document.getElementById('input-waist').value = '';
+                document.getElementById('body-fat-preview').style.display = 'none';
+
+                alert('Измерения сохранены!');
+
+                // Перезагружаем данные
+                await loadBodyMetrics();
+            } catch (error) {
+                alert('Ошибка сохранения: ' + error.message);
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+            }
         }
     </script>
 </body>

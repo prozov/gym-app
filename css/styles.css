@@ -1331,3 +1331,117 @@ input:focus, select:focus {
     color: var(--primary);
     flex-shrink: 0;
 }
+
+/* ============================================
+   ПАРАМЕТРЫ ТЕЛА
+   ============================================ */
+.body-form-card {
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+}
+
+.body-form-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.body-form-icon {
+    width: 44px;
+    height: 44px;
+    background: var(--primary-light);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.body-form-title {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.body-metrics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.body-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.body-input-group label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-light);
+}
+
+.body-input-group input {
+    padding: 12px 14px;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.body-fat-preview {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 16px;
+    text-align: center;
+    color: white;
+}
+
+.body-fat-label {
+    font-size: 13px;
+    opacity: 0.9;
+    margin-bottom: 4px;
+}
+
+.body-fat-value {
+    font-size: 36px;
+    font-weight: 700;
+}
+
+.body-fat-formula {
+    font-size: 11px;
+    opacity: 0.7;
+    margin-top: 4px;
+}
+
+.body-metric-history-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow);
+}
+
+.body-metric-date {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: var(--text);
+}
+
+.body-metric-values {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.body-metric-tag {
+    background: var(--bg);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+}

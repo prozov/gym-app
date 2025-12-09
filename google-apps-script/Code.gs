@@ -158,6 +158,9 @@ function doGet(e) {
       case 'getStats':
         result = getStats(user.user_id, e.parameter.exerciseId);
         break;
+      case 'getBodyMetrics':
+        result = getBodyMetrics(user.user_id, e.parameter.startDate, e.parameter.endDate);
+        break;
       case 'getCurrentUser':
         result = { user: user };
         break;
@@ -205,6 +208,12 @@ function doPost(e) {
         break;
       case 'addExercise':
         result = addExercise(user.user_id, data.exercise);
+        break;
+      case 'addBodyMetric':
+        result = addBodyMetric(user.user_id, data.metric);
+        break;
+      case 'deleteBodyMetric':
+        result = deleteBodyMetric(user.user_id, data.id);
         break;
       default:
         result = { error: 'Unknown action: ' + action };
@@ -305,6 +314,16 @@ function initializeSheets() {
       exercisesSheet.getRange(1, lastCol).setValue('user_id');
       exercisesSheet.getRange(1, lastCol).setFontWeight('bold');
     }
+  }
+
+  // Создаём лист BodyMetrics
+  let bodyMetricsSheet = ss.getSheetByName('BodyMetrics');
+  if (!bodyMetricsSheet) {
+    bodyMetricsSheet = ss.insertSheet('BodyMetrics');
+    bodyMetricsSheet.getRange(1, 1, 1, 9).setValues([[
+      'id', 'user_id', 'date', 'height', 'weight', 'neck', 'waist', 'body_fat_percent', 'created_at'
+    ]]);
+    bodyMetricsSheet.getRange(1, 1, 1, 9).setFontWeight('bold');
   }
 
   // Удаляем дефолтный Sheet1 если есть
@@ -520,4 +539,80 @@ function getStats(userId, exerciseId) {
     lastWorkout: workouts[workouts.length - 1],
     firstWorkout: workouts[0]
   };
+}
+
+// ============================================
+// ПАРАМЕТРЫ ТЕЛА
+// ============================================
+
+function getBodyMetrics(userId, startDate, endDate) {
+  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('BodyMetrics');
+  if (!sheet) return [];
+
+  const data = sheet.getDataRange().getValues();
+  if (data.length <= 1) return [];
+
+  const headers = data[0];
+
+  let metrics = data.slice(1)
+    .map(row => {
+      const obj = {};
+      headers.forEach((header, i) => {
+        obj[header] = row[i];
+      });
+      return obj;
+    })
+    .filter(m => m.user_id === userId);
+
+  if (startDate) {
+    metrics = metrics.filter(m => new Date(m.date) >= new Date(startDate));
+  }
+  if (endDate) {
+    metrics = metrics.filter(m => new Date(m.date) <= new Date(endDate));
+  }
+
+  // Сортировка по дате (новые сверху)
+  metrics.sort((a, b) => new Date(b.date) - new Date(a.date));
+  return metrics;
+}
+
+function addBodyMetric(userId, metric) {
+  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('BodyMetrics');
+  if (!sheet) return { error: 'BodyMetrics sheet not found. Run init first.' };
+
+  const id = 'bm_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+
+  sheet.appendRow([
+    id,
+    userId,
+    metric.date,
+    metric.height,
+    metric.weight,
+    metric.neck,
+    metric.waist,
+    metric.body_fat_percent,
+    new Date().toISOString()
+  ]);
+
+  return { success: true, id: id };
+}
+
+function deleteBodyMetric(userId, id) {
+  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('BodyMetrics');
+  if (!sheet) return { error: 'BodyMetrics sheet not found' };
+
+  const data = sheet.getDataRange().getValues();
+
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === id) {
+      // Проверяем что запись принадлежит пользователю
+      if (data[i][1] !== userId) {
+        return { error: 'Access denied' };
+      }
+      sheet.deleteRow(i + 1);
+      return { success: true };
+    }
+  }
+
+  return { error: 'Metric not found' };
 }
