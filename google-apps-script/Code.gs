@@ -299,8 +299,8 @@ function initializeSheets() {
       ['ex_butterfly', 'Бабочка', 'Грудь', 'chest', 'isolation', false, ''],
       ['ex_reverse_fly', 'Обратное разведение рук', 'Спина', 'back', 'isolation', false, ''],
       ['ex_calf_raise', 'Подъём на носки', 'Икры', 'calves', 'isolation', false, ''],
-      ['ex_bicep_curl', 'Сгибание рук с гантелями', 'Бицепс', 'biceps', 'isolation', false, ''],
-      ['ex_tricep_ext', 'Разгибание рук на блоке', 'Трицепс', 'triceps', 'isolation', false, ''],
+      ['ex_bicep_curl', 'Сгибание рук с гантелями', 'Руки', 'arms', 'isolation', false, ''],
+      ['ex_tricep_ext', 'Разгибание рук на блоке', 'Руки', 'arms', 'isolation', false, ''],
       ['ex_crunches', 'Скручивания', 'Кор', 'core', 'isolation', false, ''],
       ['ex_plank', 'Планка', 'Кор', 'core', 'isolation', false, ''],
     ];

@@ -4,7 +4,7 @@
  */
 
 const API = {
-    BASE_URL: 'https://script.google.com/macros/s/AKfycbx6TwAk8JgssBwcGPoog5NlJuMue644LCZ9mDaVUN5e8eZAwsrlLvHGauJ0cdCdgj37/exec',
+    BASE_URL: 'https://script.google.com/macros/s/AKfycbzdbK1x40UOKgA43LZWFbcwElZe39iKl8QfAi92gTjip0eYaVfW3b9JmUpkcwwamjytTQ/exec',
 
     // Токен хранится в localStorage
     _token: null,

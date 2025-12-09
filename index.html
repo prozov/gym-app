@@ -238,7 +238,7 @@
                     <div class="chart-title">Тоннаж по группам мышц</div>
                     <div class="muscle-tabs">
                         <button class="muscle-tab active" data-muscle="Грудь" onclick="switchMuscleTab('Грудь')">💪 Грудь</button>
-                        <button class="muscle-tab" data-muscle="Спина" onclick="switchMuscleTab('Спина')">🔙 Спина</button>
+                        <button class="muscle-tab" data-muscle="Спина" onclick="switchMuscleTab('Спина')">🏋️ Спина</button>
                         <button class="muscle-tab" data-muscle="Плечи" onclick="switchMuscleTab('Плечи')">🎯 Плечи</button>
                         <button class="muscle-tab" data-muscle="Ноги" onclick="switchMuscleTab('Ноги')">🦵 Ноги</button>
                     </div>
@@ -545,8 +545,8 @@
             { id: 'ex_leg_press', name: 'Жим ногами', category: 'Ноги', type: 'base' },
             { id: 'ex_hack_squat', name: 'Гакк-приседания', category: 'Ноги', type: 'base' },
             { id: 'ex_leg_curl', name: 'Сгибание ног', category: 'Ноги', type: 'isolation' },
-            { id: 'ex_bicep_curl', name: 'Сгибание рук', category: 'Бицепс', type: 'isolation' },
-            { id: 'ex_tricep_extension', name: 'Разгибание рук', category: 'Трицепс', type: 'isolation' }
+            { id: 'ex_bicep_curl', name: 'Сгибание рук', category: 'Руки', type: 'isolation' },
+            { id: 'ex_tricep_extension', name: 'Разгибание рук', category: 'Руки', type: 'isolation' }
         ];
 
         // Генерация демо-тренировок за последние 2 месяца с реалистичной прогрессией
@@ -1299,8 +1299,7 @@
                 'Спина': '🏋️',
                 'Плечи': '🎯',
                 'Ноги': '🦵',
-                'Бицепс': '💪',
-                'Трицепс': '💪',
+                'Руки': '✊',
                 'Икры': '🦶',
                 'Кор': '🧘'
             };
