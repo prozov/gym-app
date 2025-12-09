@@ -15,7 +15,7 @@
 // ============================================
 // НАСТРОЙКИ - ЗАМЕНИТЕ НА СВОИ
 // ============================================
-const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID_HERE';
+const SPREADSHEET_ID = '1ZBKB2sjkfgU2fQlPwim3uyn442c3vV5s3qL-dn0uQRc';
 const GOOGLE_CLIENT_ID = '170990227936-afe8ef92mc5aji5npde0hfcq512p86ee.apps.googleusercontent.com';
 
 // Email для миграции существующих данных
