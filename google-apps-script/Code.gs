@@ -18,9 +18,6 @@
 const SPREADSHEET_ID = '1ZBKB2sjkfgU2fQlPwim3uyn442c3vV5s3qL-dn0uQRc';
 const GOOGLE_CLIENT_ID = '170990227936-afe8ef92mc5aji5npde0hfcq512p86ee.apps.googleusercontent.com';
 
-// Email для миграции существующих данных
-const MIGRATION_EMAIL = 'r031k23@gmail.com';
-
 // ============================================
 // АВТОРИЗАЦИЯ
 // ============================================
@@ -104,53 +101,7 @@ function getOrCreateUser(googleUser) {
     newUser.created_at
   ]);
 
-  // Если это первый пользователь с email миграции - привязываем старые данные
-  if (googleUser.email === MIGRATION_EMAIL) {
-    migrateExistingData(googleUser.user_id);
-  }
-
   return newUser;
-}
-
-/**
- * Миграция существующих данных к первому пользователю
- */
-function migrateExistingData(userId) {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-
-  // Миграция Workouts
-  const workoutsSheet = ss.getSheetByName('Workouts');
-  if (workoutsSheet) {
-    const data = workoutsSheet.getDataRange().getValues();
-    const headers = data[0];
-    const userIdCol = headers.indexOf('user_id');
-
-    if (userIdCol !== -1) {
-      for (let i = 1; i < data.length; i++) {
-        if (!data[i][userIdCol] || data[i][userIdCol] === '') {
-          workoutsSheet.getRange(i + 1, userIdCol + 1).setValue(userId);
-        }
-      }
-    }
-  }
-
-  // Миграция custom упражнений
-  const exercisesSheet = ss.getSheetByName('Exercises');
-  if (exercisesSheet) {
-    const data = exercisesSheet.getDataRange().getValues();
-    const headers = data[0];
-    const userIdCol = headers.indexOf('user_id');
-    const typeCol = headers.indexOf('type');
-
-    if (userIdCol !== -1) {
-      for (let i = 1; i < data.length; i++) {
-        // Только для custom упражнений без user_id
-        if (data[i][typeCol] === 'custom' && (!data[i][userIdCol] || data[i][userIdCol] === '')) {
-          exercisesSheet.getRange(i + 1, userIdCol + 1).setValue(userId);
-        }
-      }
-    }
-  }
 }
 
 /**
