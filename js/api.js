@@ -1,18 +1,77 @@
 /**
  * API модуль для работы с Google Sheets
+ * С поддержкой Google OAuth авторизации
  */
 
 const API = {
     BASE_URL: 'https://script.google.com/macros/s/AKfycbx82OnXnecwQquZo_tTPZDJ2uJnArioS9OPBWDRXHQprSEH4fJPIqkZfF6tV9NRZ4wLhA/exec',
-    SECRET_KEY: 'xK9mP2nL5qR8',
+
+    // Токен хранится в localStorage
+    _token: null,
+    _currentUser: null,
+
+    /**
+     * Инициализация API - загрузка токена из localStorage
+     */
+    init() {
+        this._token = localStorage.getItem('auth_token');
+        const userStr = localStorage.getItem('auth_user');
+        if (userStr) {
+            try {
+                this._currentUser = JSON.parse(userStr);
+            } catch (e) {
+                this._currentUser = null;
+            }
+        }
+    },
+
+    /**
+     * Проверка авторизации
+     */
+    isAuthenticated() {
+        return !!this._token;
+    },
+
+    /**
+     * Получить текущего пользователя
+     */
+    getCurrentUser() {
+        return this._currentUser;
+    },
+
+    /**
+     * Установить токен авторизации
+     */
+    setAuthToken(token, user = null) {
+        this._token = token;
+        this._currentUser = user;
+        localStorage.setItem('auth_token', token);
+        if (user) {
+            localStorage.setItem('auth_user', JSON.stringify(user));
+        }
+    },
+
+    /**
+     * Очистить токен авторизации (выход)
+     */
+    clearAuthToken() {
+        this._token = null;
+        this._currentUser = null;
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('auth_user');
+    },
 
     /**
      * GET запрос к API
      */
     async get(action, params = {}) {
+        if (!this._token) {
+            throw new Error('Not authenticated');
+        }
+
         const url = new URL(this.BASE_URL);
         url.searchParams.set('action', action);
-        url.searchParams.set('key', this.SECRET_KEY);
+        url.searchParams.set('token', this._token);
 
         for (const [key, value] of Object.entries(params)) {
             if (value !== undefined && value !== null) {
@@ -25,6 +84,11 @@ const API = {
             const data = await response.json();
 
             if (data.error) {
+                // Если токен невалидный - разлогиниваем
+                if (data.error.includes('token') || data.error === 'Authorization required') {
+                    this.clearAuthToken();
+                    window.dispatchEvent(new CustomEvent('auth:logout'));
+                }
                 throw new Error(data.error);
             }
             return data;
@@ -38,6 +102,10 @@ const API = {
      * POST запрос к API
      */
     async post(action, payload = {}) {
+        if (!this._token) {
+            throw new Error('Not authenticated');
+        }
+
         try {
             const response = await fetch(this.BASE_URL, {
                 method: 'POST',
@@ -46,7 +114,7 @@ const API = {
                 },
                 body: JSON.stringify({
                     action,
-                    key: this.SECRET_KEY,
+                    token: this._token,
                     ...payload
                 })
             });
@@ -54,6 +122,11 @@ const API = {
             const data = await response.json();
 
             if (data.error) {
+                // Если токен невалидный - разлогиниваем
+                if (data.error.includes('token') || data.error === 'Authorization required') {
+                    this.clearAuthToken();
+                    window.dispatchEvent(new CustomEvent('auth:logout'));
+                }
                 throw new Error(data.error);
             }
             return data;
@@ -124,3 +197,6 @@ const API = {
         return await this.get('getStats', { exerciseId });
     }
 };
+
+// Инициализация при загрузке
+API.init();
