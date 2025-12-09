@@ -87,7 +87,7 @@ body {
     background: linear-gradient(180deg, var(--primary-light) 0%, var(--bg) 100%);
 }
 
-.auth-page.active {
+.page.auth-page.active {
     display: flex;
     align-items: center;
     justify-content: center;
