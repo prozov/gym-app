@@ -92,8 +92,13 @@ body {
     align-items: center;
     justify-content: center;
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     z-index: 100;
+    padding: 20px;
+    background: linear-gradient(180deg, var(--primary-light) 0%, var(--bg) 100%);
 }
 
 .auth-container {
