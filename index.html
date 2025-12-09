@@ -124,6 +124,9 @@
     <section id="page-history" class="page">
         <div class="header">
             <div class="header-title">История</div>
+            <button class="user-profile-btn" onclick="showUserMenu()">
+                <img src="" alt="" class="user-avatar">
+            </button>
         </div>
 
         <div class="container">
@@ -137,6 +140,9 @@
     <section id="page-stats" class="page">
         <div class="header">
             <div class="header-title">Статистика</div>
+            <button class="user-profile-btn" onclick="showUserMenu()">
+                <img src="" alt="" class="user-avatar">
+            </button>
         </div>
 
         <div class="container">
@@ -234,6 +240,9 @@
     <section id="page-exercises" class="page">
         <div class="header">
             <div class="header-title">Упражнения</div>
+            <button class="user-profile-btn" onclick="showUserMenu()">
+                <img src="" alt="" class="user-avatar">
+            </button>
         </div>
 
         <div class="container" id="exercises-list-container">
@@ -417,7 +426,8 @@
             const user = API.getCurrentUser();
             if (user) {
                 const avatar = user.picture || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23999"><circle cx="12" cy="8" r="4"/><path d="M12 14c-6 0-8 3-8 6v2h16v-2c0-3-2-6-8-6z"/></svg>';
-                document.getElementById('user-avatar').src = avatar;
+                // Обновляем все аватары на всех страницах
+                document.querySelectorAll('.user-avatar').forEach(img => img.src = avatar);
                 document.getElementById('user-menu-avatar').src = avatar;
                 document.getElementById('user-menu-name').textContent = user.name || 'Пользователь';
                 document.getElementById('user-menu-email').textContent = user.email || '';
