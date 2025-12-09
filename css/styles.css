@@ -901,6 +901,11 @@ input:focus, select:focus {
     border-radius: var(--radius);
     padding: 20px;
     box-shadow: var(--shadow);
+    margin-bottom: 16px;
+}
+
+.chart-card:last-child {
+    margin-bottom: 0;
 }
 
 .chart-title {
