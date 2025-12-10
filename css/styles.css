@@ -684,22 +684,22 @@ input:focus, select:focus {
     gap: 14px;
 }
 
-.exercise-icon {
+/* Контейнер для иконки в карточке упражнения */
+.exercise-card-header > .exercise-icon {
     width: 48px;
     height: 48px;
+    min-width: 48px;
     background: var(--primary-light);
     border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
     color: var(--primary);
-    padding: 10px;
 }
 
-.exercise-icon svg {
-    width: 100%;
-    height: 100%;
+.exercise-card-header > .exercise-icon .exercise-icon {
+    width: 28px;
+    height: 28px;
 }
 
 .exercise-info {
@@ -1124,8 +1124,8 @@ input:focus, select:focus {
 }
 
 .exercise-tag-icon {
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
     background: var(--primary-light);
     border-radius: 10px;
     display: flex;
@@ -1134,13 +1134,12 @@ input:focus, select:focus {
     margin-bottom: 10px;
     font-size: 18px;
     color: var(--primary);
-    padding: 7px;
 }
 
 .exercise-tag-icon svg,
 .exercise-tag-icon img {
-    width: 100%;
-    height: 100%;
+    width: 28px;
+    height: 28px;
 }
 
 /* ============================================
@@ -1343,6 +1342,14 @@ input:focus, select:focus {
 .top-exercise-icon {
     font-size: 20px;
     flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    color: var(--primary);
+}
+
+.top-exercise-icon svg {
+    width: 100%;
+    height: 100%;
 }
 
 .top-exercise-info {
@@ -1546,8 +1553,7 @@ input:focus, select:focus {
     height: 24px;
     vertical-align: middle;
     display: inline-block;
-    /* Оранжевый цвет #FF6B35 */
-    filter: brightness(0) saturate(100%) invert(52%) sepia(96%) saturate(1041%) hue-rotate(336deg) brightness(101%) contrast(101%);
+    color: var(--primary);
 }
 
 .muscle-tab .exercise-icon {
@@ -1557,25 +1563,18 @@ input:focus, select:focus {
 }
 
 .muscle-tab.active .exercise-icon {
-    /* Белый для активного таба */
-    filter: brightness(0) saturate(100%) invert(100%);
+    color: white;
 }
 
 .exercise-item .exercise-icon {
-    width: 28px;
-    height: 28px;
-    margin-right: 10px;
+    width: 32px;
+    height: 32px;
+    margin-right: 12px;
 }
 
 .history-exercise .exercise-icon {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     margin-right: 8px;
 }
 
-.exercise-tag-icon .exercise-icon {
-    width: 100%;
-    height: 100%;
-    /* Тёмный цвет на светлом фоне */
-    filter: brightness(0) saturate(100%) invert(52%) sepia(96%) saturate(1041%) hue-rotate(336deg) brightness(101%) contrast(101%);
-}
