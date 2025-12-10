@@ -237,10 +237,10 @@
                 <div class="chart-card">
                     <div class="chart-title">Тоннаж по группам мышц</div>
                     <div class="muscle-tabs">
-                        <button class="muscle-tab active" data-muscle="Грудь" onclick="switchMuscleTab('Грудь')">💪 Грудь</button>
-                        <button class="muscle-tab" data-muscle="Спина" onclick="switchMuscleTab('Спина')">🏋️ Спина</button>
-                        <button class="muscle-tab" data-muscle="Плечи" onclick="switchMuscleTab('Плечи')">🎯 Плечи</button>
-                        <button class="muscle-tab" data-muscle="Ноги" onclick="switchMuscleTab('Ноги')">🦵 Ноги</button>
+                        <button class="muscle-tab active" data-muscle="Грудь" onclick="switchMuscleTab('Грудь')"><img src="icons/chest_icon_181762.svg" class="exercise-icon" alt="Грудь"> Грудь</button>
+                        <button class="muscle-tab" data-muscle="Спина" onclick="switchMuscleTab('Спина')"><img src="icons/strength_training_icon_181760.svg" class="exercise-icon" alt="Спина"> Спина</button>
+                        <button class="muscle-tab" data-muscle="Плечи" onclick="switchMuscleTab('Плечи')"><img src="icons/triceps_fitness_icon_181746.svg" class="exercise-icon" alt="Плечи"> Плечи</button>
+                        <button class="muscle-tab" data-muscle="Ноги" onclick="switchMuscleTab('Ноги')"><img src="icons/quads_fitness_icon_181757.svg" class="exercise-icon" alt="Ноги"> Ноги</button>
                     </div>
                     <canvas id="muscle-group-chart"></canvas>
                 </div>
@@ -1375,15 +1375,16 @@
 
         function getExerciseIcon(category) {
             const icons = {
-                'Грудь': '💪',
-                'Спина': '🏋️',
-                'Плечи': '🎯',
-                'Ноги': '🦵',
-                'Руки': '✊',
-                'Икры': '🦶',
-                'Кор': '🧘'
+                'Грудь': 'icons/chest_icon_181762.svg',
+                'Спина': 'icons/strength_training_icon_181760.svg',
+                'Плечи': 'icons/triceps_fitness_icon_181746.svg',
+                'Ноги': 'icons/quads_fitness_icon_181757.svg',
+                'Руки': 'icons/biceps_fitness_gym_icon_181750.svg',
+                'Икры': 'icons/glutes_fitness_gym_icon_181749.svg',
+                'Кор': 'icons/abs_fitness_icon_181759.svg'
             };
-            return icons[category] || '🏋️';
+            const src = icons[category] || 'icons/strength_training_icon_181760.svg';
+            return `<img src="${src}" class="exercise-icon" alt="${category || 'упражнение'}">`;
         }
 
         function addExerciseToWorkout(exerciseId) {

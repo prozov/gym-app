@@ -1137,7 +1137,8 @@ input:focus, select:focus {
     padding: 7px;
 }
 
-.exercise-tag-icon svg {
+.exercise-tag-icon svg,
+.exercise-tag-icon img {
     width: 100%;
     height: 100%;
 }
@@ -1535,4 +1536,46 @@ input:focus, select:focus {
 .muscle-tab.active {
     background: var(--primary);
     color: white;
+}
+
+/* ============================================
+   ИКОНКИ УПРАЖНЕНИЙ (SVG)
+   ============================================ */
+.exercise-icon {
+    width: 24px;
+    height: 24px;
+    vertical-align: middle;
+    display: inline-block;
+    /* Оранжевый цвет #FF6B35 */
+    filter: brightness(0) saturate(100%) invert(52%) sepia(96%) saturate(1041%) hue-rotate(336deg) brightness(101%) contrast(101%);
+}
+
+.muscle-tab .exercise-icon {
+    width: 18px;
+    height: 18px;
+    margin-right: 6px;
+}
+
+.muscle-tab.active .exercise-icon {
+    /* Белый для активного таба */
+    filter: brightness(0) saturate(100%) invert(100%);
+}
+
+.exercise-item .exercise-icon {
+    width: 28px;
+    height: 28px;
+    margin-right: 10px;
+}
+
+.history-exercise .exercise-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+}
+
+.exercise-tag-icon .exercise-icon {
+    width: 100%;
+    height: 100%;
+    /* Тёмный цвет на светлом фоне */
+    filter: brightness(0) saturate(100%) invert(52%) sepia(96%) saturate(1041%) hue-rotate(336deg) brightness(101%) contrast(101%);
 }
