@@ -26,10 +26,52 @@ const API = {
     },
 
     /**
-     * Проверка авторизации
+     * Декодировать JWT токен и получить payload
+     */
+    _decodeToken(token) {
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            return payload;
+        } catch (e) {
+            return null;
+        }
+    },
+
+    /**
+     * Получить время истечения токена (в секундах Unix timestamp)
+     */
+    getTokenExpiration() {
+        if (!this._token) return null;
+        const payload = this._decodeToken(this._token);
+        return payload ? payload.exp : null;
+    },
+
+    /**
+     * Проверить, истёк ли токен
+     * @param {number} bufferSeconds - буфер в секундах до истечения (по умолчанию 5 минут)
+     */
+    isTokenExpired(bufferSeconds = 300) {
+        const exp = this.getTokenExpiration();
+        if (!exp) return true;
+        const now = Math.floor(Date.now() / 1000);
+        return now >= (exp - bufferSeconds);
+    },
+
+    /**
+     * Получить оставшееся время жизни токена в секундах
+     */
+    getTokenTimeLeft() {
+        const exp = this.getTokenExpiration();
+        if (!exp) return 0;
+        const now = Math.floor(Date.now() / 1000);
+        return Math.max(0, exp - now);
+    },
+
+    /**
+     * Проверка авторизации (учитывает срок жизни токена)
      */
     isAuthenticated() {
-        return !!this._token;
+        return !!this._token && !this.isTokenExpired();
     },
 
     /**

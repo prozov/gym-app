@@ -856,8 +856,80 @@
                 google.accounts.id.initialize({
                     client_id: GOOGLE_CLIENT_ID,
                     callback: handleGoogleSignIn,
-                    auto_select: false
+                    auto_select: true
                 });
+            }
+        }
+
+        // Таймер проверки токена
+        let tokenCheckInterval = null;
+
+        /**
+         * Попытаться обновить токен через Google One Tap
+         */
+        function refreshToken() {
+            return new Promise((resolve) => {
+                if (typeof google === 'undefined' || !google.accounts) {
+                    resolve(false);
+                    return;
+                }
+
+                // Пробуем получить токен через auto_select
+                google.accounts.id.prompt((notification) => {
+                    if (notification.isSkippedMoment() || notification.isNotDisplayed()) {
+                        // Не удалось обновить автоматически
+                        resolve(false);
+                    }
+                    // Если успешно - handleGoogleSignIn будет вызван автоматически
+                    // и resolve не вызовется, но это нормально
+                });
+
+                // Таймаут на случай если prompt не вызвал callback
+                setTimeout(() => resolve(false), 5000);
+            });
+        }
+
+        /**
+         * Запустить периодическую проверку токена
+         */
+        function startTokenCheck() {
+            // Очищаем предыдущий интервал если есть
+            if (tokenCheckInterval) {
+                clearInterval(tokenCheckInterval);
+            }
+
+            // Проверяем каждые 5 минут
+            tokenCheckInterval = setInterval(async () => {
+                if (isDemo) return;
+
+                const timeLeft = API.getTokenTimeLeft();
+                console.log(`Токен истекает через ${Math.round(timeLeft / 60)} мин`);
+
+                // Если осталось меньше 10 минут - пробуем обновить
+                if (timeLeft > 0 && timeLeft < 600) {
+                    console.log('Попытка обновить токен...');
+                    const refreshed = await refreshToken();
+                    if (!refreshed && timeLeft < 60) {
+                        // Не удалось обновить и осталось меньше минуты
+                        console.log('Токен истекает, требуется повторный вход');
+                    }
+                }
+
+                // Если токен уже истёк
+                if (!API.isAuthenticated()) {
+                    console.log('Токен истёк, показываем страницу входа');
+                    showAuthPage();
+                }
+            }, 5 * 60 * 1000); // 5 минут
+        }
+
+        /**
+         * Остановить проверку токена
+         */
+        function stopTokenCheck() {
+            if (tokenCheckInterval) {
+                clearInterval(tokenCheckInterval);
+                tokenCheckInterval = null;
             }
         }
 
@@ -944,6 +1016,9 @@
          */
         function signOut() {
             hideUserMenu();
+
+            // Останавливаем проверку токена
+            stopTokenCheck();
 
             // В демо-режиме просто выходим из демо
             if (isDemo) {
@@ -1072,6 +1147,11 @@
         async function initApp() {
             // Инициализируем Google Sign-In
             initGoogleSignIn();
+
+            // Запускаем проверку токена (если не демо-режим)
+            if (!isDemo) {
+                startTokenCheck();
+            }
 
             // Установить дату
             document.getElementById('workout-date').value = workoutDate;
