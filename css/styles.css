@@ -34,6 +34,11 @@ body {
     padding-bottom: 90px;
 }
 
+/* Универсальный класс скрытия */
+.hidden {
+    display: none !important;
+}
+
 /* ============================================
    ЗАГРУЗКА
    ============================================ */
@@ -89,7 +94,7 @@ body {
 
 .page.auth-page.active {
     display: flex !important;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     position: fixed;
     top: 0;
@@ -97,8 +102,9 @@ body {
     right: 0;
     bottom: 0;
     z-index: 100;
-    padding: 20px;
+    padding: 40px 20px;
     background: linear-gradient(180deg, var(--primary-light) 0%, var(--bg) 100%);
+    overflow-y: auto;
 }
 
 .auth-container {
@@ -145,29 +151,105 @@ body {
     font-size: 24px;
 }
 
-.btn-google {
+/* Табы авторизации */
+.auth-tabs {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    width: 100%;
-    padding: 16px 24px;
+    gap: 0;
+    margin-bottom: 24px;
     background: var(--card);
-    border: 1px solid var(--border);
     border-radius: var(--radius);
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--text);
-    cursor: pointer;
-    transition: all 0.2s;
+    padding: 4px;
     box-shadow: var(--shadow);
 }
 
-.btn-google:hover {
-    background: #F5F5F5;
+.auth-tab {
+    flex: 1;
+    padding: 12px 16px;
+    border: none;
+    background: transparent;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-light);
+    cursor: pointer;
+    border-radius: calc(var(--radius) - 2px);
+    transition: all 0.2s;
 }
 
-.btn-google:active {
+.auth-tab.active {
+    background: var(--primary);
+    color: white;
+}
+
+.auth-tab:not(.active):hover {
+    background: var(--bg);
+}
+
+/* Формы авторизации */
+.auth-form {
+    text-align: left;
+}
+
+.auth-form .form-group {
+    margin-bottom: 16px;
+}
+
+.auth-form .form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.auth-form .form-group input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 16px;
+    background: var(--card);
+    color: var(--text);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.auth-form .form-group input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.auth-form .form-group input::placeholder {
+    color: var(--text-muted);
+}
+
+.auth-error {
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    background: #FEE2E2;
+    border: 1px solid #FECACA;
+    border-radius: var(--radius);
+    color: #DC2626;
+    font-size: 14px;
+}
+
+.auth-form .btn-primary {
+    width: 100%;
+    padding: 16px 24px;
+    background: var(--primary);
+    border: none;
+    border-radius: var(--radius);
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.auth-form .btn-primary:hover {
+    background: var(--primary-dark);
+}
+
+.auth-form .btn-primary:active {
     transform: scale(0.98);
 }
 

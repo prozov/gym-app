@@ -16,105 +16,309 @@
 // НАСТРОЙКИ - ЗАМЕНИТЕ НА СВОИ
 // ============================================
 const SPREADSHEET_ID = '1ZBKB2sjkfgU2fQlPwim3uyn442c3vV5s3qL-dn0uQRc';
-const GOOGLE_CLIENT_ID = '170990227936-afe8ef92mc5aji5npde0hfcq512p86ee.apps.googleusercontent.com';
+
+// Срок жизни сессии (30 дней в миллисекундах)
+const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
+
+// Количество итераций для хеширования пароля
+const HASH_ITERATIONS = 10000;
 
 // ============================================
-// АВТОРИЗАЦИЯ
+// ХЕШИРОВАНИЕ ПАРОЛЕЙ
 // ============================================
 
 /**
- * Проверка Google ID Token
+ * Генерация случайного salt
  */
-function verifyGoogleToken(idToken) {
-  if (!idToken) {
-    return { error: 'No token provided' };
+function generateSalt(length = 32) {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let salt = '';
+  for (let i = 0; i < length; i++) {
+    salt += chars.charAt(Math.floor(Math.random() * chars.length));
   }
-
-  try {
-    const response = UrlFetchApp.fetch(
-      'https://oauth2.googleapis.com/tokeninfo?id_token=' + idToken
-    );
-    const tokenInfo = JSON.parse(response.getContentText());
-
-    // Проверяем что токен выдан для нашего приложения
-    if (tokenInfo.aud !== GOOGLE_CLIENT_ID) {
-      return { error: 'Invalid token audience' };
-    }
-
-    return {
-      success: true,
-      user_id: tokenInfo.sub,
-      email: tokenInfo.email,
-      name: tokenInfo.name || tokenInfo.email.split('@')[0],
-      picture: tokenInfo.picture || ''
-    };
-  } catch (error) {
-    return { error: 'Invalid token: ' + error.message };
-  }
+  return salt;
 }
 
 /**
- * Получить или создать пользователя
+ * Хеширование пароля с salt (итеративный SHA-256)
  */
-function getOrCreateUser(googleUser) {
+function hashPassword(password, salt) {
+  let hash = password + salt;
+  for (let i = 0; i < HASH_ITERATIONS; i++) {
+    const digest = Utilities.computeDigest(
+      Utilities.DigestAlgorithm.SHA_256,
+      hash,
+      Utilities.Charset.UTF_8
+    );
+    hash = digest.map(b => ('0' + (b & 0xFF).toString(16)).slice(-2)).join('');
+  }
+  return hash;
+}
+
+/**
+ * Проверка пароля
+ */
+function verifyPassword(password, salt, storedHash) {
+  const hash = hashPassword(password, salt);
+  return hash === storedHash;
+}
+
+// ============================================
+// УПРАВЛЕНИЕ СЕССИЯМИ
+// ============================================
+
+/**
+ * Генерация сессионного токена
+ */
+function generateSessionToken() {
+  const timestamp = Date.now().toString(36);
+  const random1 = Math.random().toString(36).substr(2, 15);
+  const random2 = Math.random().toString(36).substr(2, 15);
+  return timestamp + '_' + random1 + random2;
+}
+
+/**
+ * Создание сессии
+ */
+function createSession(userId) {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  let sessionsSheet = ss.getSheetByName('Sessions');
+
+  if (!sessionsSheet) {
+    sessionsSheet = ss.insertSheet('Sessions');
+    sessionsSheet.getRange(1, 1, 1, 4).setValues([[
+      'token', 'user_id', 'created_at', 'expires_at'
+    ]]);
+    sessionsSheet.getRange(1, 1, 1, 4).setFontWeight('bold');
+  }
+
+  const token = generateSessionToken();
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + SESSION_DURATION_MS);
+
+  sessionsSheet.appendRow([
+    token,
+    userId,
+    now.toISOString(),
+    expiresAt.toISOString()
+  ]);
+
+  return {
+    token: token,
+    expires_at: expiresAt.toISOString()
+  };
+}
+
+/**
+ * Проверка сессионного токена
+ */
+function verifySessionToken(token) {
+  if (!token) {
+    return { error: 'No token provided' };
+  }
+
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sessionsSheet = ss.getSheetByName('Sessions');
+
+  if (!sessionsSheet) {
+    return { error: 'Invalid token' };
+  }
+
+  const data = sessionsSheet.getDataRange().getValues();
+  const now = new Date();
+
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === token) {
+      const expiresAt = new Date(data[i][3]);
+      if (now > expiresAt) {
+        // Удаляем просроченную сессию
+        sessionsSheet.deleteRow(i + 1);
+        return { error: 'Token expired' };
+      }
+      return {
+        success: true,
+        user_id: data[i][1]
+      };
+    }
+  }
+
+  return { error: 'Invalid token' };
+}
+
+/**
+ * Удаление сессии (выход)
+ */
+function deleteSession(token) {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sessionsSheet = ss.getSheetByName('Sessions');
+
+  if (!sessionsSheet) return { success: true };
+
+  const data = sessionsSheet.getDataRange().getValues();
+
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === token) {
+      sessionsSheet.deleteRow(i + 1);
+      return { success: true };
+    }
+  }
+
+  return { success: true };
+}
+
+// ============================================
+// АВТОРИЗАЦИЯ (логин/пароль)
+// ============================================
+
+/**
+ * Регистрация нового пользователя
+ */
+function register(username, password, name) {
+  // Валидация
+  if (!username || username.length < 3) {
+    return { error: 'Логин должен быть минимум 3 символа' };
+  }
+  if (!password || password.length < 6) {
+    return { error: 'Пароль должен быть минимум 6 символов' };
+  }
+
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   let usersSheet = ss.getSheetByName('Users');
 
   // Создаём таблицу Users если её нет
   if (!usersSheet) {
     usersSheet = ss.insertSheet('Users');
-    usersSheet.getRange(1, 1, 1, 5).setValues([[
-      'user_id', 'email', 'name', 'picture', 'created_at'
+    usersSheet.getRange(1, 1, 1, 6).setValues([[
+      'user_id', 'username', 'password_hash', 'password_salt', 'name', 'created_at'
     ]]);
-    usersSheet.getRange(1, 1, 1, 5).setFontWeight('bold');
+    usersSheet.getRange(1, 1, 1, 6).setFontWeight('bold');
   }
 
   const data = usersSheet.getDataRange().getValues();
 
-  // Ищем существующего пользователя
+  // Проверяем уникальность username (регистронезависимо)
+  const usernameLower = username.toLowerCase();
   for (let i = 1; i < data.length; i++) {
-    if (data[i][0] === googleUser.user_id) {
+    if (data[i][1] && data[i][1].toLowerCase() === usernameLower) {
+      return { error: 'Этот логин уже занят' };
+    }
+  }
+
+  // Создаём пользователя
+  const salt = generateSalt();
+  const hash = hashPassword(password, salt);
+  const userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+
+  usersSheet.appendRow([
+    userId,
+    username,
+    hash,
+    salt,
+    name || username,
+    new Date().toISOString()
+  ]);
+
+  // Создаём сессию
+  const session = createSession(userId);
+
+  return {
+    success: true,
+    user: {
+      user_id: userId,
+      username: username,
+      name: name || username
+    },
+    token: session.token,
+    expires_at: session.expires_at
+  };
+}
+
+/**
+ * Вход по логину и паролю
+ */
+function login(username, password) {
+  if (!username || !password) {
+    return { error: 'Введите логин и пароль' };
+  }
+
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const usersSheet = ss.getSheetByName('Users');
+
+  if (!usersSheet) {
+    return { error: 'Неверный логин или пароль' };
+  }
+
+  const data = usersSheet.getDataRange().getValues();
+  const usernameLower = username.toLowerCase();
+
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][1] && data[i][1].toLowerCase() === usernameLower) {
+      const storedHash = data[i][2];
+      const salt = data[i][3];
+
+      if (verifyPassword(password, salt, storedHash)) {
+        const session = createSession(data[i][0]);
+        return {
+          success: true,
+          user: {
+            user_id: data[i][0],
+            username: data[i][1],
+            name: data[i][4]
+          },
+          token: session.token,
+          expires_at: session.expires_at
+        };
+      }
+      break;
+    }
+  }
+
+  return { error: 'Неверный логин или пароль' };
+}
+
+/**
+ * Выход (удаление сессии)
+ */
+function logout(token) {
+  return deleteSession(token);
+}
+
+/**
+ * Получить пользователя по ID
+ */
+function getUserById(userId) {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const usersSheet = ss.getSheetByName('Users');
+
+  if (!usersSheet) {
+    return { error: 'User not found' };
+  }
+
+  const data = usersSheet.getDataRange().getValues();
+
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === userId) {
       return {
         user_id: data[i][0],
-        email: data[i][1],
-        name: data[i][2],
-        picture: data[i][3],
-        created_at: data[i][4]
+        username: data[i][1],
+        name: data[i][4],
+        created_at: data[i][5]
       };
     }
   }
 
-  // Создаём нового пользователя
-  const newUser = {
-    user_id: googleUser.user_id,
-    email: googleUser.email,
-    name: googleUser.name,
-    picture: googleUser.picture,
-    created_at: new Date().toISOString()
-  };
-
-  usersSheet.appendRow([
-    newUser.user_id,
-    newUser.email,
-    newUser.name,
-    newUser.picture,
-    newUser.created_at
-  ]);
-
-  return newUser;
+  return { error: 'User not found' };
 }
 
 /**
- * Извлечь user_id из запроса
+ * Извлечь пользователя из запроса по токену сессии
  */
 function getUserFromRequest(e, isPost = false) {
   let token;
 
   if (isPost) {
-    // Для POST запросов токен в теле
     token = e.token;
   } else {
-    // Для GET запросов токен в параметрах
     token = e.parameter.token;
   }
 
@@ -122,14 +326,56 @@ function getUserFromRequest(e, isPost = false) {
     return { error: 'Authorization required' };
   }
 
-  const tokenResult = verifyGoogleToken(token);
-  if (tokenResult.error) {
-    return tokenResult;
+  const sessionResult = verifySessionToken(token);
+  if (sessionResult.error) {
+    return sessionResult;
   }
 
-  // Получаем или создаём пользователя
-  const user = getOrCreateUser(tokenResult);
-  return user;
+  return getUserById(sessionResult.user_id);
+}
+
+// ============================================
+// АДМИНИСТРАТИВНЫЕ ФУНКЦИИ
+// ============================================
+
+/**
+ * Сброс пароля пользователя (для администратора)
+ * Вызывать вручную из редактора Apps Script
+ */
+function adminResetPassword(username, newPassword) {
+  if (!username || !newPassword) {
+    return { error: 'Username and newPassword are required' };
+  }
+
+  if (newPassword.length < 6) {
+    return { error: 'Password must be at least 6 characters' };
+  }
+
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const usersSheet = ss.getSheetByName('Users');
+
+  if (!usersSheet) {
+    return { error: 'Users sheet not found' };
+  }
+
+  const data = usersSheet.getDataRange().getValues();
+  const usernameLower = username.toLowerCase();
+
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][1] && data[i][1].toLowerCase() === usernameLower) {
+      // Генерируем новый salt и hash
+      const newSalt = generateSalt();
+      const newHash = hashPassword(newPassword, newSalt);
+
+      // Обновляем password_hash (колонка 3) и password_salt (колонка 4)
+      usersSheet.getRange(i + 1, 3).setValue(newHash);
+      usersSheet.getRange(i + 1, 4).setValue(newSalt);
+
+      return { success: true, message: 'Password updated for user: ' + username };
+    }
+  }
+
+  return { error: 'User not found: ' + username };
 }
 
 // ============================================
@@ -186,13 +432,25 @@ function doPost(e) {
     return jsonResponse({ error: 'Invalid JSON' });
   }
 
-  // Проверка авторизации
+  const action = data.action;
+
+  // Actions без авторизации
+  if (action === 'register') {
+    return jsonResponse(register(data.username, data.password, data.name));
+  }
+  if (action === 'login') {
+    return jsonResponse(login(data.username, data.password));
+  }
+  if (action === 'logout') {
+    return jsonResponse(logout(data.token));
+  }
+
+  // Проверка авторизации для остальных actions
   const user = getUserFromRequest(data, true);
   if (user.error) {
     return jsonResponse({ error: user.error });
   }
 
-  const action = data.action;
   let result;
 
   try {
@@ -239,14 +497,24 @@ function jsonResponse(data) {
 function initializeSheets() {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
 
-  // Создаём лист Users
+  // Создаём лист Users (новая структура для логин/пароль)
   let usersSheet = ss.getSheetByName('Users');
   if (!usersSheet) {
     usersSheet = ss.insertSheet('Users');
-    usersSheet.getRange(1, 1, 1, 5).setValues([[
-      'user_id', 'email', 'name', 'picture', 'created_at'
+    usersSheet.getRange(1, 1, 1, 6).setValues([[
+      'user_id', 'username', 'password_hash', 'password_salt', 'name', 'created_at'
     ]]);
-    usersSheet.getRange(1, 1, 1, 5).setFontWeight('bold');
+    usersSheet.getRange(1, 1, 1, 6).setFontWeight('bold');
+  }
+
+  // Создаём лист Sessions
+  let sessionsSheet = ss.getSheetByName('Sessions');
+  if (!sessionsSheet) {
+    sessionsSheet = ss.insertSheet('Sessions');
+    sessionsSheet.getRange(1, 1, 1, 4).setValues([[
+      'token', 'user_id', 'created_at', 'expires_at'
+    ]]);
+    sessionsSheet.getRange(1, 1, 1, 4).setFontWeight('bold');
   }
 
   // Создаём лист Workouts (с user_id)

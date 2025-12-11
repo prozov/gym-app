@@ -12,8 +12,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Тренировки">
     <link rel="stylesheet" href="css/styles.css">
-    <!-- Google Identity Services -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
@@ -58,15 +56,47 @@
                 </div>
             </div>
 
-            <button class="btn-google" id="google-signin-btn" onclick="signInWithGoogle()">
-                <svg width="20" height="20" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                </svg>
-                Войти через Google
-            </button>
+            <!-- Табы переключения форм -->
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="tab-login" onclick="showLoginForm()">Вход</button>
+                <button class="auth-tab" id="tab-register" onclick="showRegisterForm()">Регистрация</button>
+            </div>
+
+            <!-- Форма входа -->
+            <div id="login-form" class="auth-form">
+                <div class="form-group">
+                    <label for="login-username">Логин</label>
+                    <input type="text" id="login-username" placeholder="Введите логин" autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Пароль</label>
+                    <input type="password" id="login-password" placeholder="Введите пароль" autocomplete="current-password">
+                </div>
+                <div id="login-error" class="auth-error hidden"></div>
+                <button class="btn-primary" onclick="handleLogin()">Войти</button>
+            </div>
+
+            <!-- Форма регистрации -->
+            <div id="register-form" class="auth-form hidden">
+                <div class="form-group">
+                    <label for="register-username">Логин</label>
+                    <input type="text" id="register-username" placeholder="Минимум 3 символа" autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="register-name">Имя</label>
+                    <input type="text" id="register-name" placeholder="Как вас называть?">
+                </div>
+                <div class="form-group">
+                    <label for="register-password">Пароль</label>
+                    <input type="password" id="register-password" placeholder="Минимум 6 символов" autocomplete="new-password">
+                </div>
+                <div class="form-group">
+                    <label for="register-password-confirm">Подтвердите пароль</label>
+                    <input type="password" id="register-password-confirm" placeholder="Повторите пароль" autocomplete="new-password">
+                </div>
+                <div id="register-error" class="auth-error hidden"></div>
+                <button class="btn-primary" onclick="handleRegister()">Зарегистрироваться</button>
+            </div>
 
             <div class="auth-divider">
                 <span>или</span>
@@ -511,11 +541,6 @@
     <!-- Главный скрипт -->
     <script>
         // ============================================
-        // НАСТРОЙКИ GOOGLE AUTH
-        // ============================================
-        const GOOGLE_CLIENT_ID = '170990227936-afe8ef92mc5aji5npde0hfcq512p86ee.apps.googleusercontent.com';
-
-        // ============================================
         // СОСТОЯНИЕ ПРИЛОЖЕНИЯ
         // ============================================
         let exercises = [];
@@ -523,7 +548,6 @@
         let workoutDate = new Date().toISOString().split('T')[0];
         let weightChart = null;
         let lastWorkoutData = {}; // Кэш последних результатов по упражнениям
-        let googleAuth = null;
         let isDemo = false; // Флаг демо-режима
         let bodyMetrics = []; // История измерений тела
         let weightBodyChart = null; // График веса тела
@@ -839,25 +863,120 @@
 
             const user = API.getCurrentUser();
             if (user) {
-                const avatar = user.picture || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23999"><circle cx="12" cy="8" r="4"/><path d="M12 14c-6 0-8 3-8 6v2h16v-2c0-3-2-6-8-6z"/></svg>';
+                // Дефолтный аватар
+                const avatar = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23FF6B35"><circle cx="12" cy="8" r="4"/><path d="M12 14c-6 0-8 3-8 6v2h16v-2c0-3-2-6-8-6z"/></svg>';
                 // Обновляем все аватары на всех страницах
                 document.querySelectorAll('.user-avatar').forEach(img => img.src = avatar);
                 document.getElementById('user-menu-avatar').src = avatar;
                 document.getElementById('user-menu-name').textContent = user.name || 'Пользователь';
-                document.getElementById('user-menu-email').textContent = user.email || '';
+                document.getElementById('user-menu-email').textContent = '@' + (user.username || '');
+            }
+        }
+
+        // ============================================
+        // АВТОРИЗАЦИЯ (логин/пароль)
+        // ============================================
+
+        /**
+         * Показать форму входа
+         */
+        function showLoginForm() {
+            document.getElementById('login-form').classList.remove('hidden');
+            document.getElementById('register-form').classList.add('hidden');
+            document.getElementById('tab-login').classList.add('active');
+            document.getElementById('tab-register').classList.remove('active');
+            document.getElementById('login-error').classList.add('hidden');
+        }
+
+        /**
+         * Показать форму регистрации
+         */
+        function showRegisterForm() {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('register-form').classList.remove('hidden');
+            document.getElementById('tab-login').classList.remove('active');
+            document.getElementById('tab-register').classList.add('active');
+            document.getElementById('register-error').classList.add('hidden');
+        }
+
+        /**
+         * Обработка входа
+         */
+        async function handleLogin() {
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value;
+            const errorEl = document.getElementById('login-error');
+
+            errorEl.classList.add('hidden');
+
+            if (!username || !password) {
+                errorEl.textContent = 'Заполните все поля';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            document.getElementById('loading').classList.remove('hidden');
+
+            try {
+                await API.login(username, password);
+                await initApp();
+                showMainApp();
+            } catch (error) {
+                errorEl.textContent = error.message;
+                errorEl.classList.remove('hidden');
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
             }
         }
 
         /**
-         * Инициализация Google Sign-In
+         * Обработка регистрации
          */
-        function initGoogleSignIn() {
-            if (typeof google !== 'undefined' && google.accounts) {
-                google.accounts.id.initialize({
-                    client_id: GOOGLE_CLIENT_ID,
-                    callback: handleGoogleSignIn,
-                    auto_select: true
-                });
+        async function handleRegister() {
+            const username = document.getElementById('register-username').value.trim();
+            const name = document.getElementById('register-name').value.trim();
+            const password = document.getElementById('register-password').value;
+            const passwordConfirm = document.getElementById('register-password-confirm').value;
+            const errorEl = document.getElementById('register-error');
+
+            errorEl.classList.add('hidden');
+
+            // Валидация
+            if (!username || !password) {
+                errorEl.textContent = 'Заполните обязательные поля';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            if (username.length < 3) {
+                errorEl.textContent = 'Логин должен быть минимум 3 символа';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            if (password.length < 6) {
+                errorEl.textContent = 'Пароль должен быть минимум 6 символов';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            if (password !== passwordConfirm) {
+                errorEl.textContent = 'Пароли не совпадают';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            document.getElementById('loading').classList.remove('hidden');
+
+            try {
+                await API.register(username, password, name || username);
+                await initApp();
+                showMainApp();
+            } catch (error) {
+                errorEl.textContent = error.message;
+                errorEl.classList.remove('hidden');
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
             }
         }
 
@@ -865,62 +984,23 @@
         let tokenCheckInterval = null;
 
         /**
-         * Попытаться обновить токен через Google One Tap
-         */
-        function refreshToken() {
-            return new Promise((resolve) => {
-                if (typeof google === 'undefined' || !google.accounts) {
-                    resolve(false);
-                    return;
-                }
-
-                // Пробуем получить токен через auto_select
-                google.accounts.id.prompt((notification) => {
-                    if (notification.isSkippedMoment() || notification.isNotDisplayed()) {
-                        // Не удалось обновить автоматически
-                        resolve(false);
-                    }
-                    // Если успешно - handleGoogleSignIn будет вызван автоматически
-                    // и resolve не вызовется, но это нормально
-                });
-
-                // Таймаут на случай если prompt не вызвал callback
-                setTimeout(() => resolve(false), 5000);
-            });
-        }
-
-        /**
          * Запустить периодическую проверку токена
          */
         function startTokenCheck() {
-            // Очищаем предыдущий интервал если есть
             if (tokenCheckInterval) {
                 clearInterval(tokenCheckInterval);
             }
 
             // Проверяем каждые 5 минут
-            tokenCheckInterval = setInterval(async () => {
+            tokenCheckInterval = setInterval(() => {
                 if (isDemo) return;
 
-                const timeLeft = API.getTokenTimeLeft();
-                console.log(`Токен истекает через ${Math.round(timeLeft / 60)} мин`);
-
-                // Если осталось меньше 10 минут - пробуем обновить
-                if (timeLeft > 0 && timeLeft < 600) {
-                    console.log('Попытка обновить токен...');
-                    const refreshed = await refreshToken();
-                    if (!refreshed && timeLeft < 60) {
-                        // Не удалось обновить и осталось меньше минуты
-                        console.log('Токен истекает, требуется повторный вход');
-                    }
-                }
-
-                // Если токен уже истёк
+                // Если токен истёк - показываем страницу входа
                 if (!API.isAuthenticated()) {
-                    console.log('Токен истёк, показываем страницу входа');
+                    console.log('Сессия истекла, показываем страницу входа');
                     showAuthPage();
                 }
-            }, 5 * 60 * 1000); // 5 минут
+            }, 5 * 60 * 1000);
         }
 
         /**
@@ -934,90 +1014,10 @@
         }
 
         /**
-         * Вход через Google
-         */
-        function signInWithGoogle() {
-            if (typeof google !== 'undefined' && google.accounts) {
-                google.accounts.id.prompt((notification) => {
-                    if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-                        // One Tap не показался, используем popup
-                        google.accounts.oauth2.initTokenClient({
-                            client_id: GOOGLE_CLIENT_ID,
-                            scope: 'email profile',
-                            callback: (response) => {
-                                if (response.access_token) {
-                                    // Получаем ID token через access token
-                                    fetchGoogleUserInfo(response.access_token);
-                                }
-                            }
-                        }).requestAccessToken();
-                    }
-                });
-            } else {
-                alert('Google Sign-In не загружен. Попробуйте обновить страницу.');
-            }
-        }
-
-        /**
-         * Получить информацию о пользователе
-         */
-        async function fetchGoogleUserInfo(accessToken) {
-            try {
-                const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                    headers: { Authorization: `Bearer ${accessToken}` }
-                });
-                const userInfo = await response.json();
-
-                // Для работы с нашим API нам нужен ID Token, а не access token
-                // Используем google.accounts.id для получения ID token
-                alert('Для корректной работы используйте вход через One Tap popup');
-            } catch (error) {
-                console.error('Ошибка получения данных пользователя:', error);
-                alert('Ошибка входа. Попробуйте ещё раз.');
-            }
-        }
-
-        /**
-         * Обработка успешного входа через Google
-         */
-        async function handleGoogleSignIn(response) {
-            if (response.credential) {
-                document.getElementById('loading').classList.remove('hidden');
-
-                try {
-                    // Декодируем JWT для получения данных пользователя
-                    const payload = JSON.parse(atob(response.credential.split('.')[1]));
-                    const user = {
-                        user_id: payload.sub,
-                        email: payload.email,
-                        name: payload.name,
-                        picture: payload.picture
-                    };
-
-                    // Сохраняем токен и данные пользователя
-                    API.setAuthToken(response.credential, user);
-
-                    // Инициализируем приложение
-                    await initApp();
-                    showMainApp();
-                } catch (error) {
-                    console.error('Ошибка авторизации:', error);
-                    alert('Ошибка входа: ' + error.message);
-                    API.clearAuthToken();
-                    showAuthPage();
-                } finally {
-                    document.getElementById('loading').classList.add('hidden');
-                }
-            }
-        }
-
-        /**
          * Выход из аккаунта
          */
-        function signOut() {
+        async function signOut() {
             hideUserMenu();
-
-            // Останавливаем проверку токена
             stopTokenCheck();
 
             // В демо-режиме просто выходим из демо
@@ -1026,17 +1026,13 @@
                 return;
             }
 
-            API.clearAuthToken();
+            // Выход через API (удаляет сессию на сервере)
+            await API.logout();
 
             // Очищаем состояние
             exercises = [];
             currentWorkout = [];
             lastWorkoutData = {};
-
-            // Отзываем доступ Google
-            if (typeof google !== 'undefined' && google.accounts) {
-                google.accounts.id.disableAutoSelect();
-            }
 
             showAuthPage();
         }
@@ -1145,9 +1141,6 @@
          * Инициализация приложения
          */
         async function initApp() {
-            // Инициализируем Google Sign-In
-            initGoogleSignIn();
-
             // Запускаем проверку токена (если не демо-режим)
             if (!isDemo) {
                 startTokenCheck();
@@ -1173,12 +1166,6 @@
             document.getElementById('loading').classList.add('hidden');
         }
 
-        // Инициализация Google при загрузке скрипта
-        window.onload = function() {
-            if (typeof google !== 'undefined') {
-                initGoogleSignIn();
-            }
-        };
 
         /**
          * Загрузить последние результаты по каждому упражнению
