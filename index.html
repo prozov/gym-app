@@ -190,43 +190,7 @@
         </div>
 
         <div class="container">
-            <div class="form-group">
-                <select id="stats-exercise-select" onchange="loadStats()">
-                    <option value="">Выберите упражнение...</option>
-                </select>
-            </div>
-
-            <div id="stats-container" style="display: none;">
-                <div class="stats-grid">
-                    <div class="stat-card highlight">
-                        <div class="stat-icon">🏆</div>
-                        <div class="stat-value" id="stat-max-weight">0 кг</div>
-                        <div class="stat-label">Макс. вес</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">📊</div>
-                        <div class="stat-value" id="stat-total-sets">0</div>
-                        <div class="stat-label">Всего подходов</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🔄</div>
-                        <div class="stat-value" id="stat-total-reps">0</div>
-                        <div class="stat-label">Всего повторений</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🗓</div>
-                        <div class="stat-value" id="stat-last-date">—</div>
-                        <div class="stat-label">Последняя</div>
-                    </div>
-                </div>
-
-                <div class="chart-card">
-                    <div class="chart-title">Прогресс веса</div>
-                    <canvas id="weight-chart"></canvas>
-                </div>
-            </div>
-
-            <!-- Общая статистика за месяц -->
+<!-- Общая статистика за месяц -->
             <div id="stats-overview">
                 <div class="stats-period-header">
                     <span class="stats-period-title">Последние 30 дней</span>
@@ -546,7 +510,6 @@
         let exercises = [];
         let currentWorkout = []; // Массив упражнений текущей тренировки
         let workoutDate = new Date().toISOString().split('T')[0];
-        let weightChart = null;
         let lastWorkoutData = {}; // Кэш последних результатов по упражнениям
         let isDemo = false; // Флаг демо-режима
         let bodyMetrics = []; // История измерений тела
@@ -1094,7 +1057,6 @@
 
             // Отображаем списки
             renderExercisesList();
-            populateStatsSelect();
 
             // Показываем баннер и приложение
             document.body.classList.add('demo-mode');
@@ -1238,7 +1200,6 @@
             try {
                 exercises = await API.getExercises();
                 renderExercisesList();
-                populateStatsSelect();
             } catch (error) {
                 console.error('Ошибка загрузки упражнений:', error);
                 alert('Не удалось загрузить упражнения. Проверьте подключение.');
@@ -1728,7 +1689,7 @@
                     } else if (dateKey === yesterday) {
                         dateLabel = 'Вчера';
                     } else {
-                        dateLabel = date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+                        dateLabel = date.toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'long' });
                     }
 
                     html += `<div class="history-group">
@@ -1768,53 +1729,8 @@
         let currentMuscleGroup = 'Грудь';
         let currentWorkoutsData = [];
 
-        function populateStatsSelect() {
-            const select = document.getElementById('stats-exercise-select');
-            select.innerHTML = '<option value="">Общая статистика</option>';
-
-            exercises.forEach(ex => {
-                const option = document.createElement('option');
-                option.value = ex.id;
-                option.textContent = ex.name;
-                select.appendChild(option);
-            });
-        }
-
         async function loadStats() {
-            const select = document.getElementById('stats-exercise-select');
-            const exerciseId = select.value;
-
-            if (!exerciseId) {
-                document.getElementById('stats-container').style.display = 'none';
-                document.getElementById('stats-overview').style.display = 'block';
-                await loadMonthlyOverview();
-                return;
-            }
-
-            document.getElementById('stats-overview').style.display = 'none';
-
-            try {
-                const stats = await API.getStats(exerciseId);
-
-                document.getElementById('stat-max-weight').textContent = stats.maxWeight + ' кг';
-                document.getElementById('stat-total-sets').textContent = stats.totalSets;
-                document.getElementById('stat-total-reps').textContent = stats.totalReps;
-
-                if (stats.lastWorkout) {
-                    const date = new Date(stats.lastWorkout.date);
-                    document.getElementById('stat-last-date').textContent =
-                        date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
-                } else {
-                    document.getElementById('stat-last-date').textContent = '—';
-                }
-
-                // График
-                renderWeightChart(stats.workouts);
-
-                document.getElementById('stats-container').style.display = 'block';
-            } catch (error) {
-                console.error('Ошибка загрузки статистики:', error);
-            }
+            await loadMonthlyOverview();
         }
 
         async function loadMonthlyOverview() {
@@ -2054,52 +1970,6 @@
                                 callback: value => parseFloat(value).toFixed(1) + 'т'
                             }
                         }
-                    }
-                }
-            });
-        }
-
-        function renderWeightChart(workouts) {
-            const ctx = document.getElementById('weight-chart').getContext('2d');
-
-            if (weightChart) {
-                weightChart.destroy();
-            }
-
-            // Группировка по дате (максимальный вес за день)
-            const byDate = {};
-            workouts.forEach(w => {
-                const date = w.date;
-                if (!byDate[date] || w.weight > byDate[date]) {
-                    byDate[date] = parseFloat(w.weight) || 0;
-                }
-            });
-
-            const labels = Object.keys(byDate).map(d =>
-                new Date(d).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
-            );
-            const data = Object.values(byDate);
-
-            weightChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Вес (кг)',
-                        data: data,
-                        borderColor: '#FF6B35',
-                        backgroundColor: 'rgba(255, 107, 53, 0.1)',
-                        tension: 0.3,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        y: { beginAtZero: false }
                     }
                 }
             });
