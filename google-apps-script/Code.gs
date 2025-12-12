@@ -554,10 +554,13 @@ function initializeSheets() {
       // Базовые - Спина
       ['ex_pullups', 'Подтягивания', 'Спина', 'back', 'base', false, ''],
       ['ex_horizontal_rows', 'Горизонтальные тяги', 'Спина', 'back', 'base', false, ''],
+      ['ex_lat_pulldown', 'Вертикальная тяга', 'Спина', 'back', 'base', false, ''],
+      ['ex_one_arm_row', 'Рычажная тяга 1й рукой', 'Спина', 'back', 'base', false, ''],
 
       // Базовые - Плечи
       ['ex_dumbbell_press', 'Жим гантелей сидя', 'Плечи', 'shoulders', 'base', false, ''],
       ['ex_shoulder_press', 'Жим в тренажёре на плечи', 'Плечи', 'shoulders', 'base', false, ''],
+      ['ex_upright_row', 'Протяжка штанги к подбородку', 'Плечи', 'shoulders', 'base', false, ''],
 
       // Базовые - Ноги
       ['ex_leg_press', 'Жим ногами', 'Ноги', 'legs', 'base', false, ''],
@@ -566,9 +569,12 @@ function initializeSheets() {
       // Изолирующие
       ['ex_butterfly', 'Бабочка', 'Грудь', 'chest', 'isolation', false, ''],
       ['ex_reverse_fly', 'Обратное разведение рук', 'Спина', 'back', 'isolation', false, ''],
+      ['ex_dumbbell_lateral', 'Махи с гантелями', 'Плечи', 'shoulders', 'isolation', false, ''],
+      ['ex_rear_delt_fly', 'Бабочка на заднюю дельту', 'Плечи', 'shoulders', 'isolation', false, ''],
       ['ex_calf_raise', 'Подъём на носки', 'Икры', 'calves', 'isolation', false, ''],
       ['ex_bicep_curl', 'Сгибание рук с гантелями', 'Руки', 'arms', 'isolation', false, ''],
       ['ex_tricep_ext', 'Разгибание рук на блоке', 'Руки', 'arms', 'isolation', false, ''],
+      ['ex_french_press', 'Французский жим', 'Руки', 'arms', 'isolation', false, ''],
       ['ex_crunches', 'Скручивания', 'Кор', 'core', 'isolation', false, ''],
       ['ex_plank', 'Планка', 'Кор', 'core', 'isolation', false, ''],
     ];

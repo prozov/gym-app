@@ -1,0 +1,7 @@
+id,name,category,muscle_group,type,is_custom,user_id
+ex_lat_pulldown,Вертикальная тяга,Спина,back,base,false,
+ex_one_arm_row,Рычажная тяга 1й рукой,Спина,back,base,false,
+ex_upright_row,Протяжка штанги к подбородку,Плечи,shoulders,base,false,
+ex_dumbbell_lateral,Махи с гантелями,Плечи,shoulders,isolation,false,
+ex_rear_delt_fly,Бабочка на заднюю дельту,Плечи,shoulders,isolation,false,
+ex_french_press,Французский жим,Руки,arms,isolation,false,
